@@ -230,6 +230,43 @@ if (track) {
 // Setup initial cards positions
 updateCardPositions();
 
+// ─── Autoplay: advance carousel every 3.5s, pause on hover or touch ──────────
+let autoplayInterval = null;
+const heroSection = document.getElementById("hero-section");
+
+function startAutoplay() {
+  if (autoplayInterval) return;
+  autoplayInterval = setInterval(() => {
+    selectFeature(activeIndex + 1);
+  }, 3500);
+}
+
+function stopAutoplay() {
+  if (autoplayInterval) {
+    clearInterval(autoplayInterval);
+    autoplayInterval = null;
+  }
+}
+
+// Pause on hover
+if (heroSection) {
+  heroSection.addEventListener("mouseenter", stopAutoplay);
+  heroSection.addEventListener("mouseleave", startAutoplay);
+}
+
+// Pause on touch
+if (track) {
+  track.addEventListener("touchstart", stopAutoplay, { passive: true });
+  track.addEventListener("touchend", () => setTimeout(startAutoplay, 1500), { passive: true });
+}
+
+// Restart autoplay after manual button press (with a short delay)
+if (prevBtn) prevBtn.addEventListener("click", () => { stopAutoplay(); setTimeout(startAutoplay, 2000); });
+if (nextBtn) nextBtn.addEventListener("click", () => { stopAutoplay(); setTimeout(startAutoplay, 2000); });
+
+startAutoplay();
+
+
 // Intersection Observer for Background Color Transition (Slow reveal)
 const bodyElement = document.body;
 const visionSection = document.getElementById("vision-section");
