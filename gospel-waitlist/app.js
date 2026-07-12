@@ -30,6 +30,15 @@ const cards = document.querySelectorAll(".carousel-card");
 const titleEl = document.getElementById("feature-title");
 const descEl = document.getElementById("feature-desc");
 const pulseOverlay = document.getElementById("interaction-pulse");
+const logoText = document.getElementById("logo-text");
+const heroTitle = document.getElementById("hero-title");
+
+// Verify DOM elements exist
+if (!titleEl) console.warn("feature-title element not found");
+if (!descEl) console.warn("feature-desc element not found");
+if (!pulseOverlay) console.warn("interaction-pulse element not found");
+if (!logoText) console.warn("logo-text element not found");
+if (!heroTitle) console.warn("hero-title element not found");
 
 let typewriterInterval = null;
 let titleTimeout = null;
@@ -49,6 +58,7 @@ function clearExistingTransitions() {
 
 // Handle typewriter animation for feature description
 function runTypewriterAnimation(descriptionText) {
+  if (!descEl) return;
   descEl.textContent = "";
   let charIndex = 0;
   typewriterInterval = setInterval(() => {
@@ -73,17 +83,22 @@ function triggerPulseOverlay() {
 }
 
 function selectFeature(index) {
-  activeIndex = ((index % FEATURES.length) + FEATURES.length) % FEATURES.length;
+  const nextIndex = ((index % FEATURES.length) + FEATURES.length) % FEATURES.length;
+  if (nextIndex === activeIndex && titleEl && titleEl.textContent !== "") return;
+
+  activeIndex = nextIndex;
   const targetFeature = FEATURES[activeIndex];
 
   clearExistingTransitions();
 
   // Transition Text Colors smoothly
-  titleEl.style.opacity = 0;
-  titleTimeout = setTimeout(() => {
-    titleEl.textContent = targetFeature.title;
-    titleEl.style.opacity = 1;
-  }, 150);
+  if (titleEl) {
+    titleEl.style.opacity = 0;
+    titleTimeout = setTimeout(() => {
+      titleEl.textContent = targetFeature.title;
+      titleEl.style.opacity = 1;
+    }, 150);
+  }
 
   runTypewriterAnimation(targetFeature.description);
   triggerPulseOverlay();
@@ -107,7 +122,9 @@ function handleVanillaTilt(card, isCenter) {
       });
     }
   } else {
-    card.vanillaTilt.destroy();
+    if (card.vanillaTilt) {
+      card.vanillaTilt.destroy();
+    }
   }
 }
 
@@ -162,13 +179,19 @@ function updateCardPositions() {
 }
 
 // Navigation event bindings
-document.getElementById("prev-btn").addEventListener("click", () => {
-  selectFeature(activeIndex - 1);
-});
+const prevBtn = document.getElementById("prev-btn");
+if (prevBtn) {
+  prevBtn.addEventListener("click", () => {
+    selectFeature(activeIndex - 1);
+  });
+}
 
-document.getElementById("next-btn").addEventListener("click", () => {
-  selectFeature(activeIndex + 1);
-});
+const nextBtn = document.getElementById("next-btn");
+if (nextBtn) {
+  nextBtn.addEventListener("click", () => {
+    selectFeature(activeIndex + 1);
+  });
+}
 
 // Capture custom swipe pointer events on the track
 const track = document.getElementById("carousel-track");
