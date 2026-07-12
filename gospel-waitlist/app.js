@@ -30,6 +30,8 @@ let activeIndex = 0;
 const titleEl = document.getElementById("feature-title");
 const descEl = document.getElementById("feature-desc");
 const bodyElement = document.body;
+let titleTimeout = null;
+let pulseTimeout = null;
 
 // Typewriter transition function
 let typewriterInterval = null;
@@ -47,7 +49,10 @@ function selectFeature(index) {
   // Fade out title
   titleEl.style.opacity = 0;
 
-  setTimeout(() => {
+  if (titleTimeout) {
+    clearTimeout(titleTimeout);
+  }
+  titleTimeout = setTimeout(() => {
     titleEl.textContent = targetFeature.title;
     // Fade in title
     titleEl.style.opacity = 1;
@@ -69,15 +74,19 @@ function selectFeature(index) {
     }
   }, 15); // 15ms per character
 
-  // Trigger brief highlight reveal effect
+  // Trigger brief radial gradient interaction pulse on overlay
   const currentBg = bodyElement.style.backgroundColor;
   if (currentBg !== 'rgb(250, 250, 247)' && currentBg.toLowerCase() !== '#fafaf7') {
-    bodyElement.style.backgroundColor = "#151515";
-    setTimeout(() => {
-      if (bodyElement.style.backgroundColor === 'rgb(21, 21, 21)' || bodyElement.style.backgroundColor === '#151515') {
-        bodyElement.style.backgroundColor = "#050505";
+    const pulseEl = document.getElementById("interaction-pulse");
+    if (pulseEl) {
+      pulseEl.style.opacity = "1";
+      if (pulseTimeout) {
+        clearTimeout(pulseTimeout);
       }
-    }, 400);
+      pulseTimeout = setTimeout(() => {
+        pulseEl.style.opacity = "0";
+      }, 250);
+    }
   }
 }
 
@@ -102,23 +111,26 @@ const RADIUS = 110;
 const shapes = [];
 
 // Helper shapes
-// Shape 1: Cross / United Body
+// Shape 1: United Body (Two interlocking golden rings)
 const crossGroup = new Group({ addTo: carouselGroup, translate: { x: 0, z: RADIUS } });
-new Shape({
+new Ellipse({
   addTo: crossGroup,
-  path: [ { y: -25 }, { y: 25 } ],
-  stroke: 8,
-  color: '#D4AF37'
+  diameter: 28,
+  stroke: 4,
+  color: '#D4AF37',
+  rotate: { y: Math.PI / 4 },
+  translate: { x: -2 }
 });
-new Shape({
+new Ellipse({
   addTo: crossGroup,
-  path: [ { x: -15 }, { x: 15 } ],
-  translate: { y: -8 },
-  stroke: 8,
-  color: '#D4AF37'
+  diameter: 28,
+  stroke: 4,
+  color: '#D4AF37',
+  rotate: { y: -Math.PI / 4 },
+  translate: { x: 2 }
 });
 
-// Shape 2: Open Book / Bible
+// Shape 2: Open Book / Bible (Spiritual Life with radiating light rays)
 const bookGroup = new Group({ addTo: carouselGroup, translate: { x: RADIUS * Math.sin(Math.PI/3), z: RADIUS * Math.cos(Math.PI/3) } });
 new Rect({
   addTo: bookGroup,
@@ -135,9 +147,36 @@ new Shape({
   stroke: 2,
   color: '#101010'
 });
+// Radiating light rays
+const rayPaths = [
+  { x: -16, y: -22, dx: -6, dy: -8 },
+  { x: 16, y: -22, dx: 6, dy: -8 },
+  { x: -16, y: 22, dx: -6, dy: 8 },
+  { x: 16, y: 22, dx: 6, dy: 8 },
+  { x: -18, y: 0, dx: -8, dy: 0 },
+  { x: 18, y: 0, dx: 8, dy: 0 }
+];
+rayPaths.forEach(ray => {
+  new Shape({
+    addTo: bookGroup,
+    path: [
+      { x: ray.x, y: ray.y },
+      { x: ray.x + ray.dx, y: ray.y + ray.dy }
+    ],
+    stroke: 2,
+    color: '#F5D76E'
+  });
+});
 
-// Shape 3: Briefcase / Jobs
+// Shape 3: Briefcase / Jobs (with a portal ring behind it)
 const jobGroup = new Group({ addTo: carouselGroup, translate: { x: RADIUS * Math.sin(2*Math.PI/3), z: RADIUS * Math.cos(2*Math.PI/3) } });
+new Ellipse({
+  addTo: jobGroup,
+  diameter: 42,
+  stroke: 2,
+  color: '#F5D76E',
+  translate: { z: -5 }
+});
 new Rect({
   addTo: jobGroup,
   width: 32,
@@ -220,6 +259,18 @@ shapes.push(crossGroup, bookGroup, jobGroup, globeGroup, gameGroup, codeGroup);
 // Eased target rotations
 let targetRotationY = 0;
 let currentRotationY = 0;
+let isCanvasVisible = true;
+
+const canvasObserver = new IntersectionObserver((entries) => {
+  entries.forEach((entry) => {
+    isCanvasVisible = entry.isIntersecting;
+  });
+}, { threshold: 0 });
+
+const canvasElementForObs = document.getElementById("zdog-canvas");
+if (canvasElementForObs) {
+  canvasObserver.observe(canvasElementForObs);
+}
 
 // Animate Zdog scene
 function animate() {
@@ -236,7 +287,9 @@ function animate() {
   currentRotationY += (targetRotationY - currentRotationY) * 0.1;
   carouselGroup.rotate.y = currentRotationY;
 
-  illo.updateRenderGraph();
+  if (isCanvasVisible) {
+    illo.updateRenderGraph();
+  }
   requestAnimationFrame(animate);
 }
 animate();
@@ -320,8 +373,8 @@ const observer = new IntersectionObserver((entries) => {
       bodyElement.style.color = "#101010";
       
       // Select elements to adapt their style/color
-      document.querySelector("header span.text-white")?.classList.replace("text-white", "text-black");
-      document.querySelector("#hero-section h1")?.classList.replace("text-white", "text-black");
+      document.getElementById("logo-text")?.classList.replace("text-white", "text-black");
+      document.getElementById("hero-title")?.classList.replace("text-white", "text-black");
       document.querySelectorAll("#hero-section button").forEach(btn => {
         btn.classList.replace("border-zinc-800", "border-zinc-300");
         btn.classList.replace("text-zinc-400", "text-zinc-700");
@@ -333,8 +386,8 @@ const observer = new IntersectionObserver((entries) => {
       bodyElement.style.backgroundColor = "#050505";
       bodyElement.style.color = "#FAFAF7";
       
-      document.querySelector("header span.text-black")?.classList.replace("text-black", "text-white");
-      document.querySelector("#hero-section h1")?.classList.replace("text-black", "text-white");
+      document.getElementById("logo-text")?.classList.replace("text-black", "text-white");
+      document.getElementById("hero-title")?.classList.replace("text-black", "text-white");
       document.querySelectorAll("#hero-section button").forEach(btn => {
         btn.classList.replace("border-zinc-300", "border-zinc-800");
         btn.classList.replace("text-zinc-700", "text-zinc-400");
@@ -359,9 +412,20 @@ waitlistForm.addEventListener("submit", (e) => {
   const email = document.getElementById("email").value;
   
   // Store Waitlist entry locally (simulation)
-  const waitlist = JSON.parse(localStorage.getItem("gospel_waitlist") || "[]");
+  let waitlist = [];
+  try {
+    waitlist = JSON.parse(localStorage.getItem("gospel_waitlist") || "[]");
+  } catch (e) {
+    console.warn("localStorage is disabled or not accessible:", e);
+  }
+
   waitlist.push({ fullName, email, timestamp: new Date().toISOString() });
-  localStorage.setItem("gospel_waitlist", JSON.stringify(waitlist));
+  
+  try {
+    localStorage.setItem("gospel_waitlist", JSON.stringify(waitlist));
+  } catch (e) {
+    console.warn("Failed to write to localStorage:", e);
+  }
   
   // Reset inputs
   waitlistForm.reset();
