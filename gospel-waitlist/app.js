@@ -1,363 +1,216 @@
+/* ─── Gospel Waitlist — Carousel & Interactions ─────────────────────────────── */
+
 const FEATURES = [
-  {
-    title: "A United Body",
-    description: "Connecting believers across every nation, tribe, and denomination into one platform. Built on love, not division."
-  },
-  {
-    title: "Spiritual Life",
-    description: "Daily structured growth, Bible readings, and guided prayers powered by faith-aligned intelligence."
-  },
-  {
-    title: "Job Openings",
-    description: "Empowering prosperity. Match with Christian employers, projects, and missions seeking your talents."
-  },
-  {
-    title: "Collaboration",
-    description: "Launch joint church campaigns, charitable initiatives, and mission projects with unified tracking."
-  },
-  {
-    title: "Team Gaming",
-    description: "Play together in clean, team-based community competitions built for fellowship and interactive fun."
-  },
-  {
-    title: "Developer Hub",
-    description: "A hub for designers, engineers, and creators building open-source tools for the global church."
-  }
+  { title: "A United Body",   desc: "Connecting believers across every nation, tribe, and denomination into one platform. Built on love, not division." },
+  { title: "Spiritual Life",  desc: "Daily structured growth, Bible readings, and guided prayers powered by faith-aligned intelligence." },
+  { title: "Job Openings",    desc: "Empowering prosperity. Match with Christian employers, projects, and missions seeking your talents." },
+  { title: "Collaboration",   desc: "Launch joint church campaigns, charitable initiatives, and mission projects with unified tracking." },
+  { title: "Team Gaming",     desc: "Play together in clean, team-based community competitions built for fellowship and interactive fun." },
+  { title: "Developer Hub",   desc: "A hub for designers, engineers, and creators building open-source tools for the global church." }
 ];
 
-let activeIndex = 0;
-const cards = document.querySelectorAll(".carousel-card");
-const titleEl = document.getElementById("feature-title");
-const descEl = document.getElementById("feature-desc");
-const pulseOverlay = document.getElementById("interaction-pulse");
-const logoText = document.getElementById("logo-text");
+const TOTAL = FEATURES.length;
+let active = 0;
+
+/* ─── DOM refs ───────────────────────────────────────────────────────────── */
+const cards     = Array.from(document.querySelectorAll(".carousel-card"));
+const titleEl   = document.getElementById("feature-title");
+const descEl    = document.getElementById("feature-desc");
+const prevBtn   = document.getElementById("prev-btn");
+const nextBtn   = document.getElementById("next-btn");
+const track     = document.getElementById("carousel-track");
+const pulse     = document.getElementById("interaction-pulse");
+const logoText  = document.getElementById("logo-text");
 const heroTitle = document.getElementById("hero-title");
+const heroSec   = document.getElementById("hero-section");
 
-// Verify DOM elements exist
-if (!titleEl) console.warn("feature-title element not found");
-if (!descEl) console.warn("feature-desc element not found");
-if (!pulseOverlay) console.warn("interaction-pulse element not found");
-if (!logoText) console.warn("logo-text element not found");
-if (!heroTitle) console.warn("hero-title element not found");
+/* ─── Typewriter ─────────────────────────────────────────────────────────── */
+let twInterval = null;
 
-let typewriterInterval = null;
-let titleTimeout = null;
-let pulseTimeout = null;
-
-// Determine current theme to toggle dynamic colors
-function isWhiteTheme() {
-  return document.body.style.backgroundColor === "rgb(250, 250, 247)" || document.body.style.backgroundColor === "#FAFAF7";
-}
-
-// Safely clear timeouts to prevent overlapping text issues
-function clearExistingTransitions() {
-  if (typewriterInterval) clearInterval(typewriterInterval);
-  if (titleTimeout) clearTimeout(titleTimeout);
-  if (pulseTimeout) clearTimeout(pulseTimeout);
-}
-
-// Handle typewriter animation for feature description
-function runTypewriterAnimation(descriptionText) {
+function typewrite(text) {
   if (!descEl) return;
+  clearInterval(twInterval);
   descEl.textContent = "";
-  let charIndex = 0;
-  typewriterInterval = setInterval(() => {
-    if (charIndex < descriptionText.length) {
-      descEl.textContent += descriptionText.charAt(charIndex);
-      charIndex++;
-    } else {
-      clearInterval(typewriterInterval);
-      typewriterInterval = null;
-    }
-  }, 12);
+  let i = 0;
+  twInterval = setInterval(() => {
+    if (i < text.length) { descEl.textContent += text[i]; i++; }
+    else { clearInterval(twInterval); twInterval = null; }
+  }, 14);
 }
 
-// Trigger golden highlight pulse overlay in dark mode
-function triggerPulseOverlay() {
-  if (!isWhiteTheme() && pulseOverlay) {
-    pulseOverlay.style.opacity = 1;
-    pulseTimeout = setTimeout(() => {
-      pulseOverlay.style.opacity = 0;
-    }, 250);
-  }
+/* ─── Position cards ─────────────────────────────────────────────────────── */
+function layout() {
+  const isMobile = window.innerWidth < 640;
+  const gap = isMobile ? 100 : 180;          // px between card centers
+
+  cards.forEach((card, i) => {
+    // Shortest circular offset from active
+    let off = i - active;
+    if (off >  TOTAL / 2) off -= TOTAL;
+    if (off < -TOTAL / 2) off += TOTAL;
+
+    const isCenter = off === 0;
+    const absOff   = Math.abs(off);
+
+    // Position
+    const tx    = off * gap;
+    const sc    = isCenter ? 1.12 : Math.max(0.75, 1 - absOff * 0.15);
+    const op    = absOff > 2 ? 0 : isCenter ? 1 : Math.max(0.25, 1 - absOff * 0.35);
+    const z     = 100 - absOff * 10;
+
+    card.style.transform = `translate(calc(-50% + ${tx}px), -50%) scale(${sc})`;
+    card.style.opacity   = op;
+    card.style.zIndex    = z;
+
+    // Gold border on active
+    if (isCenter) { card.classList.add("active"); }
+    else          { card.classList.remove("active"); }
+  });
 }
 
-function selectFeature(index) {
-  const nextIndex = ((index % FEATURES.length) + FEATURES.length) % FEATURES.length;
-  if (nextIndex === activeIndex && titleEl && titleEl.textContent !== "") return;
+/* ─── Go to card ─────────────────────────────────────────────────────────── */
+function go(idx) {
+  const next = ((idx % TOTAL) + TOTAL) % TOTAL;
+  if (next === active && titleEl && titleEl.textContent !== "") return;
+  active = next;
 
-  activeIndex = nextIndex;
-  const targetFeature = FEATURES[activeIndex];
-
-  clearExistingTransitions();
-
-  // Transition Text Colors smoothly
+  // Update text
   if (titleEl) {
     titleEl.style.opacity = 0;
-    titleTimeout = setTimeout(() => {
-      titleEl.textContent = targetFeature.title;
+    setTimeout(() => {
+      titleEl.textContent = FEATURES[active].title;
       titleEl.style.opacity = 1;
     }, 150);
   }
+  typewrite(FEATURES[active].desc);
 
-  runTypewriterAnimation(targetFeature.description);
-  triggerPulseOverlay();
-  updateCardPositions();
-}
-
-// Setup Vanilla Tilt library interaction for centered card
-function handleVanillaTilt(card, isCenter) {
-  const hasTilt = !!card.vanillaTilt;
-  if (isCenter === hasTilt) {
-    return;
+  // Gold pulse flash (dark mode only)
+  if (pulse && document.body.style.backgroundColor !== "#FAFAF7") {
+    pulse.style.opacity = 1;
+    setTimeout(() => { pulse.style.opacity = 0; }, 250);
   }
-  
-  if (isCenter) {
-    if (window.VanillaTilt) {
-      VanillaTilt.init(card, {
-        max: 12,
-        speed: 400,
-        glare: true,
-        "max-glare": 0.2
-      });
-    }
-  } else {
-    if (card.vanillaTilt) {
-      card.vanillaTilt.destroy();
-    }
-  }
+
+  layout();
 }
 
-// Update border highlight and tilt behaviors
-function updateCardBorderAndTilt(card, isCenter) {
-  if (isCenter) {
-    card.classList.add("border-gold-primary", "shadow-xl");
-    card.classList.remove("border-zinc-800");
-  } else {
-    card.classList.remove("border-gold-primary", "shadow-xl");
-    card.classList.add("border-zinc-800");
-  }
-  handleVanillaTilt(card, isCenter);
-}
+/* ─── Button navigation ──────────────────────────────────────────────────── */
+if (prevBtn) prevBtn.addEventListener("click", () => { stopAuto(); go(active - 1); restartAuto(); });
+if (nextBtn) nextBtn.addEventListener("click", () => { stopAuto(); go(active + 1); restartAuto(); });
 
-// Calculate wrapped circular index offset
-function getWrappedOffset(index, active, total) {
-  let offset = index - active;
-  const half = total / 2;
-  if (offset > half) offset -= total;
-  if (offset < -half) offset += total;
-  return offset;
-}
-
-// Compute transform and display properties for cards based on offset without ternary operators
-function calculateCardProperties(offset, isCenter) {
-  const mobileFactor = Number(window.innerWidth < 640);
-  const centerFactor = Number(isCenter);
-  
-  return {
-    translateX: offset * (160 - mobileFactor * 70),
-    scale: 0.9 + centerFactor * 0.25,
-    opacity: 0.4 + centerFactor * 0.6,
-    zIndex: 20 + centerFactor * 10,
-    rotateY: offset * -25
-  };
-}
-
-function updateCardPositions() {
-  cards.forEach((card, index) => {
-    const offset = getWrappedOffset(index, activeIndex, cards.length);
-    const isCenter = (offset === 0);
-    const props = calculateCardProperties(offset, isCenter);
-
-    // Apply transform properties directly
-    card.style.transform = `translateX(${props.translateX}px) scale(${props.scale}) rotateY(${props.rotateY}deg)`;
-    card.style.opacity = props.opacity;
-    card.style.zIndex = props.zIndex;
-
-    updateCardBorderAndTilt(card, isCenter);
-  });
-}
-
-// Navigation event bindings
-const prevBtn = document.getElementById("prev-btn");
-if (prevBtn) {
-  prevBtn.addEventListener("click", () => {
-    selectFeature(activeIndex - 1);
-  });
-}
-
-const nextBtn = document.getElementById("next-btn");
-if (nextBtn) {
-  nextBtn.addEventListener("click", () => {
-    selectFeature(activeIndex + 1);
-  });
-}
-
-// Capture custom swipe pointer events on the track
-const track = document.getElementById("carousel-track");
-let isDragging = false;
-let startX = 0;
-let baseIndex = 0;
+/* ─── Touch / pointer swipe on track ─────────────────────────────────────── */
+let dragging = false, startX = 0, dragBase = 0;
 
 if (track) {
-  track.addEventListener("pointerdown", (e) => {
-    isDragging = true;
-    startX = e.clientX;
-    baseIndex = activeIndex;
+  track.style.touchAction = "pan-y";   // allow vertical scroll, capture horizontal
+
+  track.addEventListener("pointerdown", e => {
+    dragging = true; startX = e.clientX; dragBase = active;
     track.setPointerCapture(e.pointerId);
   });
-
-  track.addEventListener("pointermove", (e) => {
-    if (!isDragging) return;
+  track.addEventListener("pointermove", e => {
+    if (!dragging) return;
     const dx = e.clientX - startX;
-    const isMobile = window.innerWidth < 640;
-    const threshold = isMobile ? 50 : 80;
-    
-    const indexShift = Math.round(-dx / threshold);
-    if (indexShift !== 0) {
-      // Prevent continuous shifting by updating base position
-      selectFeature(baseIndex + indexShift);
-    }
+    const threshold = window.innerWidth < 640 ? 40 : 70;
+    const shift = Math.round(-dx / threshold);
+    const target = ((dragBase + shift) % TOTAL + TOTAL) % TOTAL;
+    if (target !== active) { stopAuto(); go(target); }
   });
+  track.addEventListener("pointerup", () => { dragging = false; restartAuto(); });
+  track.addEventListener("pointercancel", () => { dragging = false; restartAuto(); });
+}
 
-  track.addEventListener("pointerup", (e) => {
-    if (!isDragging) return;
-    isDragging = false;
-    track.releasePointerCapture(e.pointerId);
+/* ─── Card click (tap a side card to navigate to it) ─────────────────────── */
+cards.forEach((card, i) => {
+  card.addEventListener("click", () => {
+    if (i !== active) { stopAuto(); go(i); restartAuto(); }
   });
+  card.style.cursor = "pointer";
+});
+
+/* ─── Autoplay ───────────────────────────────────────────────────────────── */
+let autoTimer = null;
+
+function startAuto()   { if (autoTimer) return; autoTimer = setInterval(() => go(active + 1), 3500); }
+function stopAuto()    { clearInterval(autoTimer); autoTimer = null; }
+function restartAuto() { stopAuto(); setTimeout(startAuto, 2500); }
+
+// Pause on hover (desktop)
+if (heroSec) {
+  heroSec.addEventListener("mouseenter", stopAuto);
+  heroSec.addEventListener("mouseleave", startAuto);
 }
 
-// Setup initial cards positions
-updateCardPositions();
+/* ─── Kick-off ───────────────────────────────────────────────────────────── */
+layout();
+startAuto();
 
-// ─── Autoplay: advance carousel every 3.5s, pause on hover or touch ──────────
-let autoplayInterval = null;
-const heroSection = document.getElementById("hero-section");
+/* ─── Resize handler ─────────────────────────────────────────────────────── */
+window.addEventListener("resize", layout);
 
-function startAutoplay() {
-  if (autoplayInterval) return;
-  autoplayInterval = setInterval(() => {
-    selectFeature(activeIndex + 1);
-  }, 3500);
-}
+/* ═══════════════════════════════════════════════════════════════════════════
+   SECTION 2 & 3 — Scroll reveal + waitlist form
+   ═══════════════════════════════════════════════════════════════════════════ */
 
-function stopAutoplay() {
-  if (autoplayInterval) {
-    clearInterval(autoplayInterval);
-    autoplayInterval = null;
-  }
-}
-
-// Pause on hover
-if (heroSection) {
-  heroSection.addEventListener("mouseenter", stopAutoplay);
-  heroSection.addEventListener("mouseleave", startAutoplay);
-}
-
-// Pause on touch
-if (track) {
-  track.addEventListener("touchstart", stopAutoplay, { passive: true });
-  track.addEventListener("touchend", () => setTimeout(startAutoplay, 1500), { passive: true });
-}
-
-// Restart autoplay after manual button press (with a short delay)
-if (prevBtn) prevBtn.addEventListener("click", () => { stopAutoplay(); setTimeout(startAutoplay, 2000); });
-if (nextBtn) nextBtn.addEventListener("click", () => { stopAutoplay(); setTimeout(startAutoplay, 2000); });
-
-startAutoplay();
-
-
-// Intersection Observer for Background Color Transition (Slow reveal)
-const bodyElement = document.body;
 const visionSection = document.getElementById("vision-section");
 
-const observerOptions = {
-  root: null,
-  threshold: 0.35
-};
+if (visionSection) {
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        visionSection.classList.remove("opacity-0", "translate-y-12");
+        document.body.style.backgroundColor = "#FAFAF7";
+        document.body.style.color = "#101010";
+        logoText?.classList.replace("text-white", "text-black");
+        heroTitle?.classList.replace("text-white", "text-black");
+        titleEl?.classList.replace("text-gold-light", "text-gold-dark");
+        descEl?.classList.replace("text-zinc-400", "text-zinc-600");
+        document.querySelectorAll("#hero-section button").forEach(b => {
+          b.classList.replace("border-zinc-800", "border-zinc-300");
+          b.classList.replace("text-zinc-400", "text-zinc-700");
+        });
+      } else {
+        document.body.style.backgroundColor = "#050505";
+        document.body.style.color = "#FAFAF7";
+        logoText?.classList.replace("text-black", "text-white");
+        heroTitle?.classList.replace("text-black", "text-white");
+        titleEl?.classList.replace("text-gold-dark", "text-gold-light");
+        descEl?.classList.replace("text-zinc-600", "text-zinc-400");
+        document.querySelectorAll("#hero-section button").forEach(b => {
+          b.classList.replace("border-zinc-300", "border-zinc-800");
+          b.classList.replace("text-zinc-700", "text-zinc-400");
+        });
+      }
+    });
+  }, { threshold: 0.35 });
+  obs.observe(visionSection);
+}
 
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach((entry) => {
-    if (entry.isIntersecting) {
-      // Reveal vision section
-      visionSection?.classList.remove("opacity-0", "translate-y-12");
-      
-      // Shift theme background to white
-      bodyElement.style.backgroundColor = "#FAFAF7";
-      bodyElement.style.color = "#101010";
-      
-      // Swap contrast classes (optional chaining for safety)
-      logoText?.classList.replace("text-white", "text-black");
-      heroTitle?.classList.replace("text-white", "text-black");
-      titleEl?.classList.replace("text-gold-light", "text-gold-dark");
-      descEl?.classList.replace("text-zinc-400", "text-zinc-600");
-      
-      document.querySelectorAll("#hero-section button").forEach(btn => {
-        btn.classList.replace("border-zinc-800", "border-zinc-300");
-        btn.classList.replace("text-zinc-400", "text-zinc-700");
-      });
-    } else {
-      // Revert theme background to deep black
-      bodyElement.style.backgroundColor = "#050505";
-      bodyElement.style.color = "#FAFAF7";
-      
-      // Revert contrast classes (optional chaining for safety)
-      logoText?.classList.replace("text-black", "text-white");
-      heroTitle?.classList.replace("text-black", "text-white");
-      titleEl?.classList.replace("text-gold-dark", "text-gold-light");
-      descEl?.classList.replace("text-zinc-600", "text-zinc-400");
-      
-      document.querySelectorAll("#hero-section button").forEach(btn => {
-        btn.classList.replace("border-zinc-300", "border-zinc-800");
-        btn.classList.replace("text-zinc-700", "text-zinc-400");
-      });
-    }
-  });
-}, observerOptions);
+/* ─── Waitlist form ──────────────────────────────────────────────────────── */
+const form = document.getElementById("waitlist-form");
+const toast = document.getElementById("submission-toast");
+let toastTimer = null;
 
-if (visionSection) observer.observe(visionSection);
-
-// Waitlist Form Submission Mockup with Try-Catch Safety
-const waitlistForm = document.getElementById("waitlist-form");
-const submissionToast = document.getElementById("submission-toast");
-let toastTimeout = null;
-
-if (waitlistForm) {
-  waitlistForm.addEventListener("submit", (e) => {
+if (form) {
+  form.addEventListener("submit", e => {
     e.preventDefault();
-    
-    const fullName = document.getElementById("full-name")?.value || "";
+    const name  = document.getElementById("full-name")?.value || "";
     const email = document.getElementById("email")?.value || "";
-    
     try {
-      const waitlist = JSON.parse(localStorage.getItem("gospel_waitlist") || "[]");
-      waitlist.push({ fullName, email, timestamp: new Date().toISOString() });
-      localStorage.setItem("gospel_waitlist", JSON.stringify(waitlist));
-    } catch (err) {
-      console.warn("Storage write failed: Local storage is disabled or blocked in this environment.");
-    }
-    
-    // Reset input fields
-    waitlistForm.reset();
-    
-    // Show toast notification
-    if (toastTimeout) clearTimeout(toastTimeout);
-    if (submissionToast) {
-      submissionToast.classList.remove("hidden");
-      toastTimeout = setTimeout(() => {
-        submissionToast.classList.add("hidden");
-      }, 5000);
+      const list = JSON.parse(localStorage.getItem("gospel_waitlist") || "[]");
+      list.push({ name, email, ts: new Date().toISOString() });
+      localStorage.setItem("gospel_waitlist", JSON.stringify(list));
+    } catch (_) { /* private browsing */ }
+    form.reset();
+    if (toast) {
+      clearTimeout(toastTimer);
+      toast.classList.remove("hidden");
+      toastTimer = setTimeout(() => toast.classList.add("hidden"), 5000);
     }
   });
 }
 
-// Setup Vanilla-Tilt for waitlist form card
-const tiltCardEl = document.querySelector(".tilt-card");
-if (window.VanillaTilt && tiltCardEl) {
-  VanillaTilt.init(tiltCardEl, {
-    max: 8,
-    speed: 400,
-    glare: true,
-    "max-glare": 0.15,
-  });
+/* ─── Vanilla Tilt on form card ──────────────────────────────────────────── */
+const tiltEl = document.querySelector(".tilt-card");
+if (window.VanillaTilt && tiltEl) {
+  VanillaTilt.init(tiltEl, { max: 8, speed: 400, glare: true, "max-glare": 0.15 });
 }
