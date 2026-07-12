@@ -29,6 +29,7 @@ const FEATURES = [
 let activeIndex = 0;
 const titleEl = document.getElementById("feature-title");
 const descEl = document.getElementById("feature-desc");
+const bodyElement = document.body;
 
 // Typewriter transition function
 let typewriterInterval = null;
@@ -69,10 +70,15 @@ function selectFeature(index) {
   }, 15); // 15ms per character
 
   // Trigger brief highlight reveal effect
-  document.body.classList.add('bg-zinc-900');
-  setTimeout(() => {
-    document.body.classList.remove('bg-zinc-900');
-  }, 400);
+  const currentBg = bodyElement.style.backgroundColor;
+  if (currentBg !== 'rgb(250, 250, 247)' && currentBg.toLowerCase() !== '#fafaf7') {
+    bodyElement.style.backgroundColor = "#151515";
+    setTimeout(() => {
+      if (bodyElement.style.backgroundColor === 'rgb(21, 21, 21)' || bodyElement.style.backgroundColor === '#151515') {
+        bodyElement.style.backgroundColor = "#050505";
+      }
+    }, 400);
+  }
 }
 
 // Set initial style transitions
@@ -296,7 +302,6 @@ canvasEl.addEventListener("pointercancel", (e) => {
 });
 
 // Intersection Observer for Background Color Transition (Black to White)
-const bodyElement = document.body;
 const visionSection = document.getElementById("vision-section");
 
 const observerOptions = {
@@ -321,10 +326,12 @@ const observer = new IntersectionObserver((entries) => {
         btn.classList.replace("border-zinc-800", "border-zinc-300");
         btn.classList.replace("text-zinc-400", "text-zinc-700");
       });
+      titleEl?.classList.replace("text-gold-light", "text-gold-dark");
+      descEl?.classList.replace("text-zinc-400", "text-zinc-600");
     } else {
       // Revert theme background to deep black
       bodyElement.style.backgroundColor = "#050505";
-      bodyElement.style.color = "#FAFAFA";
+      bodyElement.style.color = "#FAFAF7";
       
       document.querySelector("header span.text-black")?.classList.replace("text-black", "text-white");
       document.querySelector("#hero-section h1")?.classList.replace("text-black", "text-white");
@@ -332,6 +339,8 @@ const observer = new IntersectionObserver((entries) => {
         btn.classList.replace("border-zinc-300", "border-zinc-800");
         btn.classList.replace("text-zinc-700", "text-zinc-400");
       });
+      titleEl?.classList.replace("text-gold-dark", "text-gold-light");
+      descEl?.classList.replace("text-zinc-600", "text-zinc-400");
     }
   });
 }, observerOptions);
@@ -341,6 +350,7 @@ observer.observe(visionSection);
 // Waitlist Form Handler
 const waitlistForm = document.getElementById("waitlist-form");
 const submissionToast = document.getElementById("submission-toast");
+let toastTimeout = null;
 
 waitlistForm.addEventListener("submit", (e) => {
   e.preventDefault();
@@ -357,8 +367,11 @@ waitlistForm.addEventListener("submit", (e) => {
   waitlistForm.reset();
   
   // Show toast confirmation
+  if (toastTimeout) {
+    clearTimeout(toastTimeout);
+  }
   submissionToast.classList.remove("hidden");
-  setTimeout(() => {
+  toastTimeout = setTimeout(() => {
     submissionToast.classList.add("hidden");
   }, 6000);
 });
