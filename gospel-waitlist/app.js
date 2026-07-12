@@ -229,3 +229,93 @@ if (track) {
 
 // Setup initial cards positions
 updateCardPositions();
+
+// Intersection Observer for Background Color Transition (Slow reveal)
+const bodyElement = document.body;
+const visionSection = document.getElementById("vision-section");
+
+const observerOptions = {
+  root: null,
+  threshold: 0.35
+};
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((entry) => {
+    if (entry.isIntersecting) {
+      // Reveal vision section
+      visionSection.classList.remove("opacity-0", "translate-y-12");
+      
+      // Shift theme background to white
+      bodyElement.style.backgroundColor = "#FAFAF7";
+      bodyElement.style.color = "#101010";
+      
+      // Swap contrast classes
+      logoText.classList.replace("text-white", "text-black");
+      heroTitle.classList.replace("text-white", "text-black");
+      titleEl.classList.replace("text-gold-light", "text-gold-dark");
+      descEl.classList.replace("text-zinc-400", "text-zinc-600");
+      
+      document.querySelectorAll("#hero-section button").forEach(btn => {
+        btn.classList.replace("border-zinc-800", "border-zinc-300");
+        btn.classList.replace("text-zinc-400", "text-zinc-700");
+      });
+    } else {
+      // Revert theme background to deep black
+      bodyElement.style.backgroundColor = "#050505";
+      bodyElement.style.color = "#FAFAF7";
+      
+      // Revert contrast classes
+      logoText.classList.replace("text-black", "text-white");
+      heroTitle.classList.replace("text-black", "text-white");
+      titleEl.classList.replace("text-gold-dark", "text-gold-light");
+      descEl.classList.replace("text-zinc-600", "text-zinc-400");
+      
+      document.querySelectorAll("#hero-section button").forEach(btn => {
+        btn.classList.replace("border-zinc-300", "border-zinc-800");
+        btn.classList.replace("text-zinc-700", "text-zinc-400");
+      });
+    }
+  });
+}, observerOptions);
+
+observer.observe(visionSection);
+
+// Waitlist Form Submission Mockup with Try-Catch Safety
+const waitlistForm = document.getElementById("waitlist-form");
+const submissionToast = document.getElementById("submission-toast");
+let toastTimeout = null;
+
+waitlistForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+  
+  const fullName = document.getElementById("full-name").value;
+  const email = document.getElementById("email").value;
+  
+  try {
+    const waitlist = JSON.parse(localStorage.getItem("gospel_waitlist") || "[]");
+    waitlist.push({ fullName, email, timestamp: new Date().toISOString() });
+    localStorage.setItem("gospel_waitlist", JSON.stringify(waitlist));
+  } catch (err) {
+    console.warn("Storage write failed: Local storage is disabled or blocked in this environment.");
+  }
+  
+  // Reset input fields
+  waitlistForm.reset();
+  
+  // Show toast notification
+  if (toastTimeout) clearTimeout(toastTimeout);
+  submissionToast.classList.remove("hidden");
+  toastTimeout = setTimeout(() => {
+    submissionToast.classList.add("hidden");
+  }, 5000);
+});
+
+// Setup Vanilla-Tilt for waitlist form card
+if (window.VanillaTilt) {
+  VanillaTilt.init(document.querySelector(".tilt-card"), {
+    max: 8,
+    speed: 400,
+    glare: true,
+    "max-glare": 0.15,
+  });
+}

@@ -30,4 +30,10 @@ assert(htmlContent.includes('carousel-card'), 'Carousel card class is missing');
 assert(htmlContent.includes('id="feature-title"'), 'Feature title element is missing');
 assert(htmlContent.includes('id="feature-desc"'), 'Feature description element is missing');
 
-console.log("Baseline + Coverflow structure checks passed!");
+// Assert Section 2 & 3 presence
+assert(htmlContent.includes('id="vision-section"'), 'Vision section wrapper is missing');
+assert(htmlContent.includes('id="waitlist-section"'), 'Waitlist section wrapper is missing');
+assert(htmlContent.includes('id="waitlist-form"'), 'Waitlist form element is missing');
+assert(htmlContent.includes('<!-- data-tilt -->'), 'data-tilt indicator comment is missing');
+
+console.log("All waitlist landing page structural, animation, and form checks passed!");
