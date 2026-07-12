@@ -294,3 +294,82 @@ canvasEl.addEventListener("pointercancel", (e) => {
   const index = -roundedSegments;
   selectFeature(index);
 });
+
+// Intersection Observer for Background Color Transition (Black to White)
+const bodyElement = document.body;
+const visionSection = document.getElementById("vision-section");
+
+const observerOptions = {
+  root: null,
+  threshold: 0.35
+};
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((entry) => {
+    if (entry.isIntersecting) {
+      // Reveal vision section
+      visionSection.classList.remove("opacity-0", "translate-y-12");
+      
+      // Shift theme background to white
+      bodyElement.style.backgroundColor = "#FAFAF7";
+      bodyElement.style.color = "#101010";
+      
+      // Select elements to adapt their style/color
+      document.querySelector("header span.text-white")?.classList.replace("text-white", "text-black");
+      document.querySelector("#hero-section h1")?.classList.replace("text-white", "text-black");
+      document.querySelectorAll("#hero-section button").forEach(btn => {
+        btn.classList.replace("border-zinc-800", "border-zinc-300");
+        btn.classList.replace("text-zinc-400", "text-zinc-700");
+      });
+    } else {
+      // Revert theme background to deep black
+      bodyElement.style.backgroundColor = "#050505";
+      bodyElement.style.color = "#FAFAFA";
+      
+      document.querySelector("header span.text-black")?.classList.replace("text-black", "text-white");
+      document.querySelector("#hero-section h1")?.classList.replace("text-black", "text-white");
+      document.querySelectorAll("#hero-section button").forEach(btn => {
+        btn.classList.replace("border-zinc-300", "border-zinc-800");
+        btn.classList.replace("text-zinc-700", "text-zinc-400");
+      });
+    }
+  });
+}, observerOptions);
+
+observer.observe(visionSection);
+
+// Waitlist Form Handler
+const waitlistForm = document.getElementById("waitlist-form");
+const submissionToast = document.getElementById("submission-toast");
+
+waitlistForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+  
+  const fullName = document.getElementById("full-name").value;
+  const email = document.getElementById("email").value;
+  
+  // Store Waitlist entry locally (simulation)
+  const waitlist = JSON.parse(localStorage.getItem("gospel_waitlist") || "[]");
+  waitlist.push({ fullName, email, timestamp: new Date().toISOString() });
+  localStorage.setItem("gospel_waitlist", JSON.stringify(waitlist));
+  
+  // Reset inputs
+  waitlistForm.reset();
+  
+  // Show toast confirmation
+  submissionToast.classList.remove("hidden");
+  setTimeout(() => {
+    submissionToast.classList.add("hidden");
+  }, 6000);
+});
+
+// Configure Vanilla-Tilt parameters programmatically
+if (window.VanillaTilt) {
+  VanillaTilt.init(document.querySelector(".tilt-card"), {
+    max: 8,
+    speed: 400,
+    glare: true,
+    "max-glare": 0.15,
+  });
+}
+

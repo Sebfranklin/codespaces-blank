@@ -80,7 +80,62 @@
         </div>
       </div>
     </section>
+
+    <!-- Section 2: Vision & Launch Banner -->
+    <section id="vision-section" class="relative min-h-[60vh] flex flex-col justify-center py-20 px-6 max-w-5xl mx-auto opacity-0 translate-y-12 transition-all duration-1000">
+      <div class="text-center">
+        <span class="text-gold-primary tracking-widest text-sm font-bold uppercase mb-4 block">The Divine Commission</span>
+        <h2 class="font-display font-extrabold text-3xl sm:text-5xl tracking-tight leading-tight mb-8">
+          Uniting the Body of Christ.
+        </h2>
+        <p class="text-xl leading-relaxed text-zinc-500 max-w-[60ch] mx-auto mb-12">
+          A platform designed to remove denominational division. Helping believers walk in love, build thriving spiritual habits, and collaborate on global mission objectives.
+        </p>
+        
+        <!-- Launch December Banner Ribbon -->
+        <div class="inline-block bg-zinc-950 text-white rounded-full py-4 px-8 border border-zinc-800 shadow-[0_0_30px_rgba(212,175,55,0.08)]">
+          <span class="font-display font-bold text-lg tracking-wider">PREPARING THE WAY — LAUNCHING <span class="gold-text-gradient">DECEMBER 2026</span></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3: Floating Waitlist Form -->
+    <section id="waitlist-section" class="relative min-h-[90vh] flex flex-col justify-center items-center py-20 px-6 max-w-7xl mx-auto">
+      <div class="w-full max-w-xl">
+        <!-- 3D Parallax Tilt Card Container -->
+        <div class="tilt-card bg-zinc-950/80 rounded-3xl p-8 sm:p-12 border border-zinc-900 shadow-2xl relative overflow-hidden" data-tilt data-tilt-max="10" data-tilt-glare data-tilt-max-glare="0.2">
+          <div class="relative z-10 flex flex-col items-center text-center">
+            <h2 class="font-display font-extrabold text-3xl sm:text-4xl text-white mb-3">Request Early Access</h2>
+            <p class="text-zinc-400 text-sm mb-8">
+              Receive private briefings and early-access invitations before the December launch.
+            </p>
+
+            <!-- Signup Form -->
+            <form id="waitlist-form" class="w-full flex flex-col gap-5">
+              <div class="w-full text-left">
+                <label for="full-name" class="block text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-2">Full Name</label>
+                <input type="text" id="full-name" name="full-name" required placeholder="Apostle John" 
+                  class="w-full bg-zinc-900 border border-zinc-800 hover:border-zinc-700 focus:border-gold-primary rounded-xl px-4 py-3.5 text-white placeholder-zinc-600 outline-none transition-all">
+              </div>
+              
+              <div class="w-full text-left">
+                <label for="email" class="block text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-2">Email Address</label>
+                <input type="email" id="email" name="email" required placeholder="john@bodyofchrist.org"
+                  class="w-full bg-zinc-900 border border-zinc-800 hover:border-zinc-700 focus:border-gold-primary rounded-xl px-4 py-3.5 text-white placeholder-zinc-600 outline-none transition-all">
+              </div>
+
+              <button type="submit" class="w-full bg-gradient-to-r from-gold-primary to-gold-light text-black font-display font-bold py-4 rounded-xl hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] transition-all active:scale-[0.98] mt-4">
+                Enter The Upper Room
+              </button>
+            </form>
+            
+            <p id="submission-toast" class="mt-6 text-sm text-gold-light hidden">✓ You have been registered. The team will keep you posted on progress.</p>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
+
   
   <script src="app.js"></script>
   <script>

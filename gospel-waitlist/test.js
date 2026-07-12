@@ -28,6 +28,13 @@ assert(htmlContent.includes('id="zdog-canvas"'), 'Canvas element for Zdog is mis
 assert(htmlContent.includes('id="feature-title"'), 'Feature title wrapper is missing');
 assert(htmlContent.includes('id="feature-desc"'), 'Feature description wrapper is missing');
 
-console.log("Baseline + 3D Carousel structure checks passed!");
+// Assert Section 2 & 3 presence
+assert(htmlContent.includes('id="vision-section"'), 'Vision section wrapper is missing');
+assert(htmlContent.includes('id="waitlist-section"'), 'Waitlist section wrapper is missing');
+assert(htmlContent.includes('id="waitlist-form"'), 'Waitlist form element is missing');
+assert(htmlContent.includes('data-tilt'), 'Vanilla-tilt data attribute is missing');
+
+console.log("All waitlist landing page structural, animation, and form checks passed!");
+
 
 
