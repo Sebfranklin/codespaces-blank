@@ -44,6 +44,89 @@
       </div>
       <a href="#waitlist-section" class="text-xs sm:text-sm font-semibold tracking-wider text-gold-primary hover:text-gold-light border border-gold-primary/30 hover:border-gold-primary/60 bg-gold-primary/10 px-4 py-2 rounded-full transition-all focus:ring-2 focus:ring-gold-primary outline-none">Join Waitlist</a>
     </header>
+
+    <!-- Section 1: Hero Carousel -->
+    <section id="hero-section" class="relative flex flex-col justify-center items-center py-6 px-6 max-w-7xl mx-auto overflow-hidden">
+      <div class="text-center mb-8 max-w-2xl">
+        <h1 id="hero-title" class="font-display font-extrabold text-4xl sm:text-6xl tracking-tight leading-tight text-white mb-4 transition-colors duration-1000">
+          One Body.<br/>
+          <span class="gold-text-gradient">Unified Destiny.</span>
+        </h1>
+      </div>
+
+      <!-- Coverflow Carousel Track -->
+      <div class="perspective-container relative w-full max-w-4xl h-[260px] sm:h-[320px] flex items-center justify-center overflow-hidden">
+        <div id="carousel-track" class="relative w-full h-full flex items-center justify-center select-none cursor-grab active:cursor-grabbing">
+          
+          <!-- Card 1: A United Body -->
+          <div class="carousel-card absolute w-[160px] sm:w-[220px] h-[200px] sm:h-[260px] bg-zinc-950/80 rounded-2xl border border-zinc-800 flex flex-col items-center justify-center p-6 text-center select-none" data-index="0">
+            <div class="w-12 h-12 rounded-full bg-gold-primary/10 border border-gold-primary/30 flex items-center justify-center text-gold-primary mb-4">
+              <i data-lucide="heart-handshake" class="w-6 h-6"></i>
+            </div>
+            <h3 class="font-display font-bold text-base sm:text-lg text-white select-none">A United Body</h3>
+          </div>
+
+          <!-- Card 2: Spiritual Life Building -->
+          <div class="carousel-card absolute w-[160px] sm:w-[220px] h-[200px] sm:h-[260px] bg-zinc-950/80 rounded-2xl border border-zinc-800 flex flex-col items-center justify-center p-6 text-center select-none" data-index="1">
+            <div class="w-12 h-12 rounded-full bg-gold-primary/10 border border-gold-primary/30 flex items-center justify-center text-gold-primary mb-4">
+              <i data-lucide="book-open" class="w-6 h-6"></i>
+            </div>
+            <h3 class="font-display font-bold text-base sm:text-lg text-white select-none">Spiritual Life</h3>
+          </div>
+
+          <!-- Card 3: Job Opportunities -->
+          <div class="carousel-card absolute w-[160px] sm:w-[220px] h-[200px] sm:h-[260px] bg-zinc-950/80 rounded-2xl border border-zinc-800 flex flex-col items-center justify-center p-6 text-center select-none" data-index="2">
+            <div class="w-12 h-12 rounded-full bg-gold-primary/10 border border-gold-primary/30 flex items-center justify-center text-gold-primary mb-4">
+              <i data-lucide="briefcase" class="w-6 h-6"></i>
+            </div>
+            <h3 class="font-display font-bold text-base sm:text-lg text-white select-none">Job Openings</h3>
+          </div>
+
+          <!-- Card 4: Better Collaboration -->
+          <div class="carousel-card absolute w-[160px] sm:w-[220px] h-[200px] sm:h-[260px] bg-zinc-950/80 rounded-2xl border border-zinc-800 flex flex-col items-center justify-center p-6 text-center select-none" data-index="3">
+            <div class="w-12 h-12 rounded-full bg-gold-primary/10 border border-gold-primary/30 flex items-center justify-center text-gold-primary mb-4">
+              <i data-lucide="globe" class="w-6 h-6"></i>
+            </div>
+            <h3 class="font-display font-bold text-base sm:text-lg text-white select-none">Collaboration</h3>
+          </div>
+
+          <!-- Card 5: Online Team Gaming -->
+          <div class="carousel-card absolute w-[160px] sm:w-[220px] h-[200px] sm:h-[260px] bg-zinc-950/80 rounded-2xl border border-zinc-800 flex flex-col items-center justify-center p-6 text-center select-none" data-index="4">
+            <div class="w-12 h-12 rounded-full bg-gold-primary/10 border border-gold-primary/30 flex items-center justify-center text-gold-primary mb-4">
+              <i data-lucide="gamepad" class="w-6 h-6"></i>
+            </div>
+            <h3 class="font-display font-bold text-base sm:text-lg text-white select-none">Team Gaming</h3>
+          </div>
+
+          <!-- Card 6: Developer Communities -->
+          <div class="carousel-card absolute w-[160px] sm:w-[220px] h-[200px] sm:h-[260px] bg-zinc-950/80 rounded-2xl border border-zinc-800 flex flex-col items-center justify-center p-6 text-center select-none" data-index="5">
+            <div class="w-12 h-12 rounded-full bg-gold-primary/10 border border-gold-primary/30 flex items-center justify-center text-gold-primary mb-4">
+              <i data-lucide="code" class="w-6 h-6"></i>
+            </div>
+            <h3 class="font-display font-bold text-base sm:text-lg text-white select-none">Developer Hub</h3>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Feature descriptions area -->
+      <div class="w-full max-w-xl text-center min-h-[140px] flex flex-col justify-start mt-6">
+        <h3 id="feature-title" class="font-display font-bold text-xl sm:text-2xl text-gold-light mb-2 transition-colors duration-1000">A United Body</h3>
+        <p id="feature-desc" class="text-zinc-400 text-sm sm:text-base leading-relaxed max-w-[50ch] mx-auto transition-colors duration-1000">
+          Connecting believers across every nation, tribe, and denomination into one platform. Built on love, not division.
+        </p>
+        
+        <!-- Pagination controls -->
+        <div class="flex gap-4 justify-center mt-6">
+          <button id="prev-btn" class="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-zinc-800 hover:border-gold-primary/50 flex items-center justify-center text-zinc-400 hover:text-gold-primary transition-all focus:ring-2 focus:ring-gold-primary outline-none">
+            <i data-lucide="arrow-left" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+          </button>
+          <button id="next-btn" class="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-zinc-800 hover:border-gold-primary/50 flex items-center justify-center text-zinc-400 hover:text-gold-primary transition-all focus:ring-2 focus:ring-gold-primary outline-none">
+            <i data-lucide="arrow-right" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+          </button>
+        </div>
+      </div>
+    </section>
   </main>
   
   <script src="app.js"></script>

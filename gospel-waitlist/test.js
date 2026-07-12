@@ -23,4 +23,11 @@ assert(htmlContent.includes('vanilla-tilt'), 'Vanilla-tilt script tag is missing
 assert(htmlContent.includes('lucide'), 'Lucide Icons script tag is missing');
 assert(htmlContent.includes('icon.png'), 'Header Gospel icon is missing');
 
-console.log("Baseline checks passed successfully!");
+// Assert existence of Coverflow Carousel elements
+assert(htmlContent.includes('class="perspective-container'), 'Perspective container is missing');
+assert(htmlContent.includes('id="carousel-track"'), 'Carousel track element is missing');
+assert(htmlContent.includes('class="carousel-card'), 'Carousel card class is missing');
+assert(htmlContent.includes('id="feature-title"'), 'Feature title element is missing');
+assert(htmlContent.includes('id="feature-desc"'), 'Feature description element is missing');
+
+console.log("Baseline + Coverflow structure checks passed!");
