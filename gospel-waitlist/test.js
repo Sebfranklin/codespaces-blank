@@ -23,4 +23,11 @@ assert(htmlContent.includes('zdog'), 'Zdog script tag is missing');
 assert(htmlContent.includes('vanilla-tilt'), 'Vanilla-tilt script tag is missing');
 assert(htmlContent.includes('lucide'), 'Lucide Icons script tag is missing');
 
-console.log("Baseline checks passed successfully!");
+// Assert existence of Zdog Canvas & Description elements
+assert(htmlContent.includes('id="zdog-canvas"'), 'Canvas element for Zdog is missing');
+assert(htmlContent.includes('id="feature-title"'), 'Feature title wrapper is missing');
+assert(htmlContent.includes('id="feature-desc"'), 'Feature description wrapper is missing');
+
+console.log("Baseline + 3D Carousel structure checks passed!");
+
+
