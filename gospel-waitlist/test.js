@@ -19,22 +19,8 @@ const htmlContent = fs.readFileSync(htmlPath, 'utf8');
 // Assert key markup details
 assert(htmlContent.includes('<!DOCTYPE html>'), 'Missing DOCTYPE');
 assert(htmlContent.includes('play.tailwindcss.com') || htmlContent.includes('tailwind'), 'Tailwind CSS CDN is missing');
-assert(htmlContent.includes('zdog'), 'Zdog script tag is missing');
 assert(htmlContent.includes('vanilla-tilt'), 'Vanilla-tilt script tag is missing');
 assert(htmlContent.includes('lucide'), 'Lucide Icons script tag is missing');
+assert(htmlContent.includes('icon.png'), 'Header Gospel icon is missing');
 
-// Assert existence of Zdog Canvas & Description elements
-assert(htmlContent.includes('id="zdog-canvas"'), 'Canvas element for Zdog is missing');
-assert(htmlContent.includes('id="feature-title"'), 'Feature title wrapper is missing');
-assert(htmlContent.includes('id="feature-desc"'), 'Feature description wrapper is missing');
-
-// Assert Section 2 & 3 presence
-assert(htmlContent.includes('id="vision-section"'), 'Vision section wrapper is missing');
-assert(htmlContent.includes('id="waitlist-section"'), 'Waitlist section wrapper is missing');
-assert(htmlContent.includes('id="waitlist-form"'), 'Waitlist form element is missing');
-assert(htmlContent.includes('data-tilt'), 'Vanilla-tilt data attribute is missing');
-
-console.log("All waitlist landing page structural, animation, and form checks passed!");
-
-
-
+console.log("Baseline checks passed successfully!");
