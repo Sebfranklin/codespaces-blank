@@ -31,22 +31,42 @@ const titleEl = document.getElementById("feature-title");
 const descEl = document.getElementById("feature-desc");
 
 // Typewriter transition function
+let typewriterInterval = null;
+
 function selectFeature(index) {
-  activeIndex = (index + FEATURES.length) % FEATURES.length;
+  activeIndex = ((index % FEATURES.length) + FEATURES.length) % FEATURES.length;
   const targetFeature = FEATURES[activeIndex];
 
-  // Fade out
+  // Stop any ongoing typewriter
+  if (typewriterInterval) {
+    clearInterval(typewriterInterval);
+    typewriterInterval = null;
+  }
+
+  // Fade out title
   titleEl.style.opacity = 0;
-  descEl.style.opacity = 0;
 
   setTimeout(() => {
     titleEl.textContent = targetFeature.title;
-    descEl.textContent = targetFeature.description;
-    
-    // Fade in
+    // Fade in title
     titleEl.style.opacity = 1;
-    descEl.style.opacity = 1;
-  }, 200);
+  }, 150);
+
+  // Typewriter effect for description
+  const fullText = targetFeature.description;
+  descEl.textContent = "";
+  descEl.style.opacity = 1; // Ensure description is fully visible
+  
+  let charIndex = 0;
+  typewriterInterval = setInterval(() => {
+    if (charIndex < fullText.length) {
+      descEl.textContent += fullText[charIndex];
+      charIndex++;
+    } else {
+      clearInterval(typewriterInterval);
+      typewriterInterval = null;
+    }
+  }, 15); // 15ms per character
 
   // Trigger brief highlight reveal effect
   document.body.classList.add('bg-zinc-900');
@@ -57,7 +77,6 @@ function selectFeature(index) {
 
 // Set initial style transitions
 titleEl.style.transition = "opacity 0.2s ease";
-descEl.style.transition = "opacity 0.2s ease";
 
 // Zdog 3D Scaffolding
 const { Illustration, Anchor, Group, Shape, Ellipse, Rect, Polygon } = Zdog;
@@ -65,7 +84,7 @@ const { Illustration, Anchor, Group, Shape, Ellipse, Rect, Polygon } = Zdog;
 const illo = new Illustration({
   element: '#zdog-canvas',
   zoom: 1.5,
-  dragRotate: true,
+  dragRotate: false,
 });
 
 // Carousel pivot group
@@ -227,16 +246,51 @@ document.getElementById("next-btn").addEventListener("click", () => {
   selectFeature(activeIndex + 1);
 });
 
-// Enable drag rotate monitoring for updating description cards
-let lastYRotation = 0;
-illo.onDragStart = () => {
-  lastYRotation = carouselGroup.rotate.y;
-};
-illo.onDragEnd = () => {
-  const delta = carouselGroup.rotate.y - lastYRotation;
-  // Calculate relative index shift based on rotation changes
-  const stepsShifted = Math.round(delta / (Math.PI / 3));
-  if (stepsShifted !== 0) {
-    selectFeature(activeIndex - stepsShifted);
-  }
-};
+// Enable custom pointer events on the canvas for drag rotation & carousel snapping
+const canvasEl = document.getElementById("zdog-canvas");
+let isDragging = false;
+let startX = 0;
+let startRotationY = 0;
+
+canvasEl.addEventListener("pointerdown", (e) => {
+  isDragging = true;
+  startX = e.clientX;
+  startRotationY = targetRotationY;
+  canvasEl.setPointerCapture(e.pointerId);
+});
+
+canvasEl.addEventListener("pointermove", (e) => {
+  if (!isDragging) return;
+  const dx = e.clientX - startX;
+  // Mapping dx to targetRotationY. Dragging left (negative dx) rotates Y in negative direction.
+  const sensitivity = 0.007;
+  targetRotationY = startRotationY + dx * sensitivity;
+});
+
+canvasEl.addEventListener("pointerup", (e) => {
+  if (!isDragging) return;
+  isDragging = false;
+  canvasEl.releasePointerCapture(e.pointerId);
+
+  // Snap the carousel to the nearest 60-degree segment (PI/3 radians)
+  const segment = Math.PI / 3;
+  const roundedSegments = Math.round(targetRotationY / segment);
+  targetRotationY = roundedSegments * segment;
+
+  // Calculate corresponding selected feature index (safely wrapping the index)
+  const index = -roundedSegments;
+  selectFeature(index);
+});
+
+canvasEl.addEventListener("pointercancel", (e) => {
+  if (!isDragging) return;
+  isDragging = false;
+  canvasEl.releasePointerCapture(e.pointerId);
+
+  const segment = Math.PI / 3;
+  const roundedSegments = Math.round(targetRotationY / segment);
+  targetRotationY = roundedSegments * segment;
+
+  const index = -roundedSegments;
+  selectFeature(index);
+});
