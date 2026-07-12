@@ -1,0 +1,20 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@700;800&display=swap');
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #050505;
+  color: #FAFAFA;
+  transition: background-color 0.8s cubic-bezier(0.16, 1, 0.3, 1), color 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.font-display {
+  font-family: 'Outfit', sans-serif;
+}
+
+/* Gold Gradient text class */
+.gold-text-gradient {
+  background: linear-gradient(135deg, #D4AF37 0%, #F5D76E 50%, #B8860B 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}

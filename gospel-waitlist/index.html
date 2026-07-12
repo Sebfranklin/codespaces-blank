@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gospel App — Waitlist</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            gold: {
+              primary: '#D4AF37',
+              light: '#F5D76E',
+              dark: '#B8860B',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="styles.css">
+  <!-- Zdog CDN -->
+  <script src="https://unpkg.com/zdog@1/dist/zdog.dist.min.js"></script>
+  <!-- Vanilla-Tilt CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="overflow-x-hidden selection:bg-gold-primary selection:text-black">
+  <main id="app-container">
+    <!-- Main content goes here -->
+  </main>
+  
+  <script src="app.js"></script>
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>
