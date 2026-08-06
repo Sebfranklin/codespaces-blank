@@ -1,13 +1,12 @@
 /* ─── Gospel Waitlist — Carousel & Interactions ─────────────────────────────── */
 
 const FEATURES = [
-  { title: "A United Body",       desc: "Connecting believers across every nation, tribe, and denomination into one platform. Built on love, not division." },
-  { title: "Spiritual Life",      desc: "Daily structured growth, Bible readings, and guided prayers powered by faith-aligned intelligence." },
-  { title: "Job Openings",        desc: "Empowering prosperity. Match with Christian employers, projects, and missions seeking your talents." },
-  { title: "Collaboration",       desc: "Launch joint church campaigns, charitable initiatives, and mission projects with unified tracking." },
-  { title: "Online Gaming",       desc: "Real multiplayer games — strategy, adventure, and team battles. Built for clean, competitive fun and fellowship." },
-  { title: "Kingdom Communities", desc: "Dedicated spaces for believers in software development, content creation, business, ministry, and every industry to connect and grow." },
-  { title: "Marketplace",         desc: "A trusted marketplace for believers to buy, sell, and trade products and services within the body of Christ." }
+  { title: "A United Body",   desc: "Connecting believers across every nation, tribe, and denomination into one platform. Built on love, not division." },
+  { title: "Spiritual Life",  desc: "Daily structured growth, Bible readings, and guided prayers powered by faith-aligned intelligence." },
+  { title: "Job Openings",    desc: "Empowering prosperity. Match with Christian employers, projects, and missions seeking your talents." },
+  { title: "Collaboration",   desc: "Launch joint church campaigns, charitable initiatives, and mission projects with unified tracking." },
+  { title: "Team Gaming",     desc: "Play together in clean, team-based community competitions built for fellowship and interactive fun." },
+  { title: "Developer Hub",   desc: "A hub for designers, engineers, and creators building open-source tools for the global church." }
 ];
 
 const TOTAL = FEATURES.length;
