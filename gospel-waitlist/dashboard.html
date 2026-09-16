@@ -476,6 +476,10 @@
                 <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
                 <span>Open in Mail App</span>
               </button>
+              <button onclick="sendSelfTest()" class="flex-1 sm:flex-initial px-3.5 py-2 rounded-lg border border-gold/40 bg-gold/10 hover:bg-gold/20 text-gold text-xs font-medium transition flex items-center justify-center gap-1.5 active:scale-95" title="Send one test email to an address you choose">
+                <i data-lucide="flask-conical" class="w-3.5 h-3.5"></i>
+                <span>Test Send</span>
+              </button>
               <button onclick="showSendModal()" class="flex-1 sm:flex-initial px-4 py-2 rounded-lg bg-gold hover:bg-gold-light text-black text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-md active:scale-95">
                 <i data-lucide="send" class="w-3.5 h-3.5"></i>
                 <span>Send Batch</span>
@@ -1378,48 +1382,45 @@
       document.getElementById('send-modal').classList.remove('flex');
     }
 
-    // Broadcast sending — two paths, picked automatically:
-    //   1. GitHub Action (preferred): needs GH_REPO + GH_TOKEN configured below.
-    //      Password lives in the repo secret, never here. Button fires the Action.
-    //   2. Cloudflare Worker fallback (needs Gmail OAuth secrets — see SENDER_SETUP.md).
-    const SEND_API_URL = "https://gospel-waitlist-sender.trixeltechnologies.workers.dev";
-    let SEND_API_TOKEN = "";
+    // Broadcast sending — Supabase Edge Function holds the Gmail secret server-side.
+    // Button calls it directly: no GitHub token, no OAuth, no extra auth.
+    // Password lives in Supabase function secrets (GMAIL_APP_PASSWORD), never here.
+    const SEND_API_URL = "https://svuvmetcrowqxafpgtub.supabase.co/functions/v1/send-broadcast";
+    // Supabase anon key is public by design but injected at deploy time, not
+    // hardcoded here. Set window.GOSPEL_SUPABASE_ANON_KEY before this script,
+    // or it falls back to the meta tag / localStorage value.
+    const SEND_API_ANON_KEY =
+      (typeof window !== "undefined" && window.GOSPEL_SUPABASE_ANON_KEY) ||
+      document.querySelector('meta[name="gospel-supabase-anon-key"]')?.content ||
+      localStorage.getItem("gospel_supabase_anon_key") ||
+      "";
 
-    // Fill these in to let the dashboard button fire the GitHub Action directly.
-    // GH_TOKEN should be a fine-grained PAT with Actions:read+write on this repo ONLY.
-    // It can only trigger the broadcast — it never sees the Gmail password.
-    const GH_REPO = "Sebfranklin/codespaces-blank";   // e.g. "Sebfranklin/codespaces-blank"
-    let GH_TOKEN = "";    // paste at runtime via prompt (never commit it here)
-
-    function ghHeaders() {
-      return {
-        "Accept": "application/vnd.github+json",
-        ...(GH_TOKEN ? { "Authorization": `Bearer ${GH_TOKEN}` } : {}),
+    async function sendViaSupabase(subject, body, selected, testTo = "") {
+      if (!SEND_API_ANON_KEY) {
+        throw new Error("Sender not configured: set window.GOSPEL_SUPABASE_ANON_KEY (see BROADCAST_ACTION.md).");
+      }
+      const headers = {
+        "Content-Type": "application/json",
+        "apikey": SEND_API_ANON_KEY,
       };
-    }
-
-    async function fireBroadcastAction(payload) {
-      const res = await fetch(`https://api.github.com/repos/${GH_REPO}/dispatches`, {
-        method: "POST",
-        headers: { ...ghHeaders(), "Content-Type": "application/json" },
-        body: JSON.stringify({ event_type: "gospel-broadcast", client_payload: payload }),
-      });
-      if (res.status === 204) return true;
-      const text = await res.text().catch(() => "");
-      throw new Error(`GitHub dispatch ${res.status}: ${text.slice(0, 160)}`);
-    }
-
-    async function sendViaWorker(subject, body, selected) {
+      // Single self-test (no recipients needed)
+      if (testTo) {
+        const res = await fetch(SEND_API_URL, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ subject, body, test_to: testTo }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data.ok !== true) throw new Error(data.error || `HTTP ${res.status}`);
+        return { sent: 1, failed: 0, errors: [] };
+      }
       let sent = 0, failed = 0;
       const errors = [];
       for (let i = 0; i < selected.length; i += 40) {
         const chunk = selected.slice(i, i + 40).map(u => ({ name: u.name, email: u.email }));
-        const res = await fetch(`${SEND_API_URL}/api/send`, {
+        const res = await fetch(SEND_API_URL, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(SEND_API_TOKEN ? { "Authorization": `Bearer ${SEND_API_TOKEN}` } : {}),
-          },
+          headers,
           body: JSON.stringify({ subject, body, recipients: chunk }),
         });
         const data = await res.json().catch(() => ({}));
@@ -1442,55 +1443,36 @@
       const subject = document.getElementById('broadcast-subject').value;
       const body = document.getElementById('broadcast-body').value;
 
-      btn.innerHTML = `<span class="animate-spin mr-1">⏳</span> Firing broadcast...`;
+      btn.innerHTML = `<span class="animate-spin mr-1">⏳</span> Sending...`;
       btn.disabled = true;
 
-      // Path 1: GitHub Action — needs repo + token at runtime (prompted, never stored).
-      if (GH_REPO) {
-        if (!GH_TOKEN) {
-          GH_TOKEN = prompt("Paste your broadcast token (enables Send; stored in memory only):") || "";
-          if (!GH_TOKEN) {
-            btn.innerHTML = `<span>Send Now</span>`;
-            btn.disabled = false;
-            return;
-          }
-        }
-        try {
-          await fireBroadcastAction({ subject, body, limit: String(Math.min(selected.length, 200)) });
-          closeSendModal();
-          showToast(`Broadcast fired! ${selected.length} emails queued — watch Actions tab.`);
-        } catch (err) {
-          console.warn("Dispatch failed:", err);
-          showToast(`Dispatch failed: ${err.message}`.slice(0, 200));
-          GH_TOKEN = ""; // bad token — force re-prompt next time
-        } finally {
-          btn.innerHTML = `<span>Send Now</span>`;
-          btn.disabled = false;
-        }
-        return;
-      }
-
-      // Path 2: Worker fallback (or mailto if no Worker URL).
-      if (!SEND_API_URL) { openMailtoClient(); closeSendModal(); btn.innerHTML = `<span>Send Now</span>`; btn.disabled = false; return; }
-
-      btn.innerHTML = `<span class="animate-spin mr-1">⏳</span> Sending via Gospel sender...`;
       try {
-        const { sent, failed, errors } = await sendViaWorker(subject, body, selected);
+        const { sent, failed, errors } = await sendViaSupabase(subject, body, selected);
         closeSendModal();
-        if (failed === 0) showToast(`Broadcast sent! ${sent} emails dispatched via Gospel sender.`);
+        if (failed === 0) showToast(`Broadcast sent! ${sent} emails dispatched.`);
         else if (sent > 0) showToast(`Partially sent: ${sent} ok, ${failed} failed. ${errors[0] || ""}`.slice(0, 160));
-        else {
-          const hint = /OAuth|Gmail|not configured/i.test(errors[0] || "")
-            ? "Sender needs Gmail OAuth secrets — see SENDER_SETUP.md."
-            : (errors[0] || "Unknown error");
-          showToast(`Send failed: ${hint}`.slice(0, 200));
-        }
+        else showToast(`Send failed: ${(errors[0] || "Unknown error")}`.slice(0, 200));
       } catch (err) {
-        console.warn("Hosted send failed:", err);
-        showToast("Send failed: cannot reach Gospel sender. Check connection.");
+        console.warn("Send failed:", err);
+        showToast(`Send failed: ${err.message}`.slice(0, 200));
       } finally {
         btn.innerHTML = `<span>Send Now</span>`;
         btn.disabled = false;
+      }
+    }
+
+    // One-click self-test from the dashboard (sends to one address, not the list).
+    async function sendSelfTest() {
+      const to = prompt("Send a test email to which address?", "gospelnetapp@gmail.com");
+      if (!to) return;
+      const subject = document.getElementById('broadcast-subject').value || "Gospel sender test";
+      const body = document.getElementById('broadcast-body').value || "Dear {{name}}, test from the waitlist dashboard.";
+      try {
+        showToast("Sending test email...");
+        await sendViaSupabase(subject, body, [], to.trim());
+        showToast(`Test email sent to ${to.trim()} — check inbox.`);
+      } catch (err) {
+        showToast(`Test failed: ${err.message}`.slice(0, 200));
       }
     }
 

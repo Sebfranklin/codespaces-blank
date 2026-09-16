@@ -1,68 +1,52 @@
-# Gospel broadcast via GitHub Action (no OAuth, no extra auth)
+# Gospel broadcast — send straight from the waitlist app (Supabase)
 
-This replaces the long Google OAuth setup. The Gmail **app password** lives in
-one place — a GitHub repo secret — and sending happens on GitHub's runners,
-where Gmail SMTP works fine (unlike Cloudflare Workers, which Gmail blocks).
+No GitHub token. No OAuth. No extra auth. The **Send Batch** button in
+`dashboard.html` calls a Supabase Edge Function directly, which holds the
+Gmail app password server-side.
 
-## One-time setup (2 steps)
+## How it works
 
-### 1. Add the Gmail app password as a repo secret
-
-Repo → **Settings → Secrets and variables → Actions → New repository secret**:
-
-- Name: `GMAIL_APP_PASSWORD`
-- Value: the 16-character app password (same one tested earlier; it is also in
-  Infisical at `/Gospel`). No spaces needed — the sender strips them anyway.
-
-### 2. Push this branch (the workflow file must exist on `main` first)
-
-`repository_dispatch` only fires for workflow files present on the repo's
-default branch. Merge/commit `.github/workflows/gospel-broadcast.yml` to
-`main` once; after that it works from any run.
-
-## Using it
-
-### A. Dashboard Send Batch button (you chose this)
-
-1. Open `dashboard.html`, unlock with the admin password.
-2. Select subscribers → Broadcast tab → compose → **Send Now**.
-3. First click prompts for a **broadcast token**: a fine-grained GitHub PAT
-   scoped to **this repo only** with **Actions: Read and write**.
-   Create at https://github.com/settings/tokens?type=beta → Generate →
-   Repository access: Only select repositories → pick this repo →
-   Permissions → Actions: Read and write.
-   It lives in memory only (never written to disk or committed) and can only
-   *trigger* the broadcast — it never sees the Gmail password.
-4. The button fires `repository_dispatch (gospel-broadcast)` with your subject,
-   body, and recipient count. Toast confirms: `Broadcast fired! N emails
-   queued — watch Actions tab.`
-5. Watch it live: repo → **Actions → Gospel waitlist broadcast** → the run
-   logs each send (`[3/22] foo@bar… sent`) with a 1.2 s gap to respect Gmail.
-
-### B. Manual trigger (no dashboard, no token)
-
-Repo → **Actions → Gospel waitlist broadcast → Run workflow** → fill
-`subject`, `body`, optional `test_to` (single self-test) and `limit`
-(safety cap, default 40, max 200) → **Run workflow**.
-
-### C. CLI (unchanged, still works)
-
-```bash
-infisical run --path="/Gospel" -- node gospel-waitlist/send-broadcast.mjs --test gospelnetapp@gmail.com
-infisical run --path="/Gospel" -- node gospel-waitlist/send-broadcast.mjs --send
+```
+dashboard.html (Send Batch / Test Send)
+  -> POST https://svuvmetcrowqxafpgtub.supabase.co/functions/v1/send-broadcast
+      headers: apikey: <anon key>
+      body: { subject, body, recipients: [{name, email}] }  (or { test_to })
+  -> Edge Function opens Gmail SMTP (smtp.gmail.com:465, Deno.connectTls)
+  -> sends with GMAIL_APP_PASSWORD from function secrets
 ```
 
 ## Files
 
-- `.github/workflows/gospel-broadcast.yml` — the Action (SMTP via nodemailer).
-- `gospel-waitlist/send-action.mjs` — the runner script (env-driven).
-- `gospel-waitlist/dashboard.html` — `executeSend()` fires the dispatch;
-  Worker (`SEND_API_URL`) kept as automatic fallback; `mailto` is last resort.
-- `gospel-waitlist/SENDER_SETUP.md` — the old Worker/OAuth path (kept for reference).
+- `gospel/supabase/functions/send-broadcast/index.ts` — the sender (deployed).
+- `gospel/supabase/config.toml` — `[functions.send-broadcast] verify_jwt = false`.
+- `gospel-waitlist/dashboard.html` — `executeSend()` + `sendSelfTest()`.
+- `.github/workflows/gospel-broadcast.yml` + `send-action.mjs` — runner/CI fallback.
 
-## Limits & notes
+## Dashboard setup (one value, not a secret)
 
-- Gmail: ~500 sends/day, ~1.2 s gap between mails is baked in.
-- Batch cap per Action run: 200 (default 40). For 22 subscribers a single run covers all.
-- `GMAIL_APP_PASSWORD` is **never** in browser JS, logs, or git — only in the
-  GitHub secret store and Infisical.
+The anon key is public by design, but it is **not hardcoded** in the HTML
+(pre-commit scans block it). Provide it at runtime — any one of:
+
+1. Before the main script in `dashboard.html`:
+   `<script>window.GOSPEL_SUPABASE_ANON_KEY = "sb_publishable_..."</script>`, or
+2. `<meta name="gospel-supabase-anon-key" content="sb_publishable_...">`, or
+3. In the browser console once (persists):
+   `localStorage.setItem("gospel_supabase_anon_key", "sb_publishable_...")`
+
+The value is the `VITE_SUPABASE_ANON_KEY` from Infisical `/Gospel`.
+
+## Test it from the waitlist app
+
+1. Open `dashboard.html`, unlock with the admin password.
+2. **Test Send** button → enter `gospelnetapp@gmail.com` → check inbox.
+3. Select subscribers → compose → **Send Batch** → real per-recipient results.
+
+## Server side (already done, for reference)
+
+```bash
+supabase functions deploy send-broadcast --project-ref svuvmetcrowqxafpgtub --no-verify-jwt --use-api
+supabase secrets set GMAIL_APP_PASSWORD="<16-char-app-password>" --project-ref svuvmetcrowqxafpgtub
+curl -X POST https://svuvmetcrowqxafpgtub.supabase.co/functions/v1/send-broadcast \
+  -H "Content-Type: application/json" -H "apikey: <anon-key>" \
+  -d '{"subject":"test","body":"hi","test_to":"gospelnetapp@gmail.com"}'
+```
