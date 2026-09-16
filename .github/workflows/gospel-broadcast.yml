@@ -1,0 +1,47 @@
+name: Gospel waitlist broadcast
+
+on:
+  repository_dispatch:
+    types: [gospel-broadcast]
+  workflow_dispatch:
+    inputs:
+      subject:
+        description: 'Email subject (supports {{name}} {{first_name}} {{email}} {{app_url}})'
+        required: false
+        default: 'Welcome to Gospel, {{name}}! Early Fellowship Access'
+      body:
+        description: 'Email body (supports {{name}} {{first_name}} {{email}} {{app_url}})'
+        required: false
+        default: 'Dear {{name}}, welcome to Gospel!'
+      test_to:
+        description: 'Send a single test email to this address instead of the full list'
+        required: false
+        default: ''
+      limit:
+        description: 'Max recipients for full broadcast (safety cap)'
+        required: false
+        default: '40'
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install mailer deps
+        working-directory: gospel-waitlist
+        run: npm install --no-audit --no-fund nodemailer
+
+      - name: Send broadcast
+        working-directory: gospel-waitlist
+        env:
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          DISPATCH_SUBJECT: ${{ github.event.client_payload.subject || github.event.inputs.subject }}
+          DISPATCH_BODY: ${{ github.event.client_payload.body || github.event.inputs.body }}
+          DISPATCH_TEST_TO: ${{ github.event.client_payload.test_to || github.event.inputs.test_to }}
+          DISPATCH_LIMIT: ${{ github.event.client_payload.limit || github.event.inputs.limit }}
+        run: node send-action.mjs

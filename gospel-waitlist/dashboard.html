@@ -1,0 +1,1566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Gospel — Waitlist & Communications Command</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            gold: {
+              DEFAULT: '#D4AF37',
+              light: '#F5D76E',
+              dark: '#B8860B',
+              50: '#FCF9EE',
+              500: '#D4AF37',
+              600: '#B8860B',
+            },
+            obsidian: '#09090b',
+            card: '#121215',
+            surface: '#18181b',
+            subtle: '#222226',
+            border: '#27272a',
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    
+    html, body {
+      min-height: 100dvh;
+      background-color: #09090b;
+      color: #f4f4f5;
+      font-family: 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Custom touch-friendly scrollbars */
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #27272a;
+      border-radius: 4px;
+    }
+
+    /* Prevent mobile tap highlight gray box */
+    * {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+    .shake {
+      animation: shake 0.35s cubic-bezier(.36,.07,.19,.97) both;
+    }
+  </style>
+</head>
+<body class="min-h-[100dvh] flex flex-col antialiased selection:bg-gold selection:text-black">
+
+  <!-- ========================================================================= -->
+  <!-- ADMIN ACCESS PASSWORD LOCK SCREEN -->
+  <!-- ========================================================================= -->
+  <div id="auth-gate" class="fixed inset-0 z-50 bg-[#09090b]/95 backdrop-blur-2xl flex items-center justify-center p-4 transition-all duration-300">
+    <div class="max-w-sm w-full bg-card border border-gold/30 rounded-2xl p-6 sm:p-7 shadow-2xl space-y-5 text-center relative overflow-hidden">
+      <!-- Ambient gold glow -->
+      <div class="absolute -top-16 -left-16 w-36 h-36 bg-gold/10 rounded-full blur-2xl pointer-events-none"></div>
+      <div class="absolute -bottom-16 -right-16 w-36 h-36 bg-gold/10 rounded-full blur-2xl pointer-events-none"></div>
+      
+      <!-- Emblem & Title -->
+      <div class="flex flex-col items-center space-y-3 relative z-10">
+        <div class="w-14 h-14 rounded-2xl border border-gold/50 bg-zinc-950 p-2 shadow-lg flex items-center justify-center">
+          <img src="assets/gospel-logo.png" alt="Gospel Emblem" class="w-full h-full object-contain" onerror="this.onerror=null;this.src='icon.png';">
+        </div>
+        <div>
+          <h2 class="text-lg font-bold text-zinc-100 tracking-tight">Gospel Command Access</h2>
+          <p class="text-xs text-zinc-400 mt-1">Enter administrator password to access subscriber intelligence and communications.</p>
+        </div>
+      </div>
+
+      <!-- Password Form -->
+      <form id="auth-gate-form" onsubmit="handleAuthSubmit(event)" class="space-y-4 relative z-10">
+        <div class="text-left space-y-1.5">
+          <label for="admin-password-input" class="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Admin Password</label>
+          <div class="relative">
+            <input 
+              type="password" 
+              id="admin-password-input" 
+              required 
+              autofocus 
+              placeholder="••••••••••••"
+              class="w-full bg-surface border border-border focus:border-gold focus:ring-1 focus:ring-gold rounded-xl px-3.5 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 outline-none transition pr-10"
+            />
+            <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-200 focus:outline-none">
+              <i id="toggle-pwd-icon" data-lucide="eye" class="w-4 h-4"></i>
+            </button>
+          </div>
+          <p id="auth-error-msg" class="text-xs text-rose-400 font-medium hidden">Incorrect password. Please try again.</p>
+        </div>
+
+        <div class="flex items-center justify-between text-xs text-zinc-400">
+          <label class="flex items-center gap-2 cursor-pointer select-none">
+            <input type="checkbox" id="auth-remember-me" class="rounded border-zinc-700 bg-surface accent-gold cursor-pointer" checked />
+            <span>Remember session</span>
+          </label>
+          <a href="https://boreal-pebble-pj5z.here.now" class="text-gold hover:underline text-[11px]">← Waitlist site</a>
+        </div>
+
+        <!-- Initial Setup / Status Credential Hint -->
+        <div id="auth-hint-container" class="text-[11px] text-zinc-400 bg-surface/80 rounded-xl p-2.5 border border-border text-center space-y-0.5">
+          <div id="auth-hint-title">Setup key: <code class="text-gold font-mono font-bold bg-zinc-900 px-1.5 py-0.5 rounded border border-gold/30">gospel2026</code></div>
+          <p id="auth-hint-sub" class="text-[10px] text-zinc-500">You can customize or change your password once logged in.</p>
+        </div>
+
+        <button type="submit" id="auth-submit-btn" class="w-full py-2.5 rounded-xl bg-gold hover:bg-gold-light text-black font-bold text-xs shadow-md transition flex items-center justify-center gap-2 active:scale-95">
+          <i data-lucide="lock" class="w-3.5 h-3.5 text-black"></i>
+          <span>Unlock Dashboard</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- TOP RESPONSIVE HEADER -->
+  <!-- ========================================================================= -->
+  <header class="border-b border-border bg-card/85 backdrop-blur-xl sticky top-0 z-40 px-3.5 sm:px-6 py-3 sm:py-3.5 transition-all">
+    <div class="max-w-7xl mx-auto flex flex-col gap-3">
+      
+      <!-- Top Row: Brand & Quick Action Controls -->
+      <div class="flex items-center justify-between">
+        <!-- Logo & Title -->
+        <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
+          <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl border border-gold/40 bg-zinc-950 flex items-center justify-center shadow-md shrink-0 overflow-hidden p-1">
+            <img src="assets/gospel-logo.png" alt="Gospel Emblem" class="w-full h-full object-contain" onerror="this.onerror=null;this.src='icon.png';">
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <h1 class="font-bold text-sm sm:text-base text-zinc-100 tracking-tight truncate">Gospel Command</h1>
+            </div>
+            <div class="flex items-center gap-2">
+              <p class="text-[11px] text-zinc-400 truncate hidden xs:block sm:block">Waitlist Intelligence & Email Broadcast</p>
+              <span class="text-[10px] text-zinc-500 hidden sm:inline">·</span>
+              <span id="auto-detect-indicator" class="text-[10px] text-gold/90 hidden sm:inline-flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-gold animate-ping"></span>
+                <span>Auto-detecting signups</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Desktop Navigation Tabs (Hidden on mobile, placed below on mobile for clean reach) -->
+        <div class="hidden md:flex items-center gap-1 bg-surface p-1 rounded-xl border border-border">
+          <button id="desk-tab-subscribers" onclick="switchTab('subscribers')" class="px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all bg-card text-zinc-100 shadow-sm border border-border flex items-center gap-1.5">
+            <i data-lucide="users" class="w-3.5 h-3.5 text-gold"></i>
+            <span>Subscribers</span>
+            <span id="desk-badge-total" class="ml-1 px-1.5 py-0.2 bg-gold/20 text-gold text-[10px] rounded-full font-bold">22</span>
+          </button>
+          <button id="desk-tab-broadcast" onclick="switchTab('broadcast')" class="px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all text-zinc-400 hover:text-zinc-200 flex items-center gap-1.5">
+            <i data-lucide="mail" class="w-3.5 h-3.5 text-zinc-400"></i>
+            <span>Broadcast Studio</span>
+          </button>
+        </div>
+
+        <!-- Right Side Header Actions -->
+        <div class="flex items-center gap-2 shrink-0">
+          <button id="sync-live-btn" onclick="fetchLiveWaitlist(true)" title="Check here.now for new signups" class="flex items-center gap-1.5 text-xs font-semibold text-zinc-200 bg-surface hover:bg-subtle active:scale-95 border border-border hover:border-gold/50 transition px-2.5 sm:px-3 py-1.5 rounded-lg shadow-sm">
+            <i id="sync-spinner-icon" data-lucide="refresh-cw" class="w-3.5 h-3.5 text-gold"></i>
+            <span class="hidden sm:inline">Sync Live</span>
+            <span id="sync-status-dot" class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+          </button>
+          <button onclick="exportCSV()" class="flex items-center gap-1.5 text-xs font-semibold text-black bg-gold hover:bg-gold-light active:scale-95 transition px-3 py-1.5 rounded-lg shadow-sm">
+            <i data-lucide="download" class="w-3.5 h-3.5"></i>
+            <span class="hidden xs:inline">Export</span> CSV
+          </button>
+          <button onclick="openChangePasswordModal()" title="Change Admin Password" class="flex items-center gap-1.5 text-xs text-zinc-300 hover:text-gold bg-surface hover:bg-subtle active:scale-95 border border-border hover:border-gold/40 transition px-2.5 py-1.5 rounded-lg shadow-sm">
+            <i data-lucide="key" class="w-3.5 h-3.5 text-gold"></i>
+            <span class="hidden md:inline">Password</span>
+          </button>
+          <button onclick="lockDashboard()" title="Lock Dashboard (Sign Out)" class="flex items-center gap-1 text-xs text-zinc-400 hover:text-rose-400 bg-surface hover:bg-subtle active:scale-95 border border-border hover:border-rose-400/40 transition px-2.5 py-1.5 rounded-lg shadow-sm">
+            <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+            <span class="hidden md:inline">Lock</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mobile Segmented Tab Control (Visible only on < md) -->
+      <div class="grid grid-cols-2 gap-1 bg-surface p-1 rounded-xl border border-border md:hidden">
+        <button id="mob-tab-subscribers" onclick="switchTab('subscribers')" class="py-2 rounded-lg text-xs font-semibold transition-all bg-card text-zinc-100 shadow-sm border border-border flex items-center justify-center gap-1.5">
+          <i data-lucide="users" class="w-3.5 h-3.5 text-gold"></i>
+          <span>Subscribers</span>
+          <span id="mob-badge-total" class="px-1.5 py-0.2 bg-gold/20 text-gold text-[10px] rounded-full font-bold">22</span>
+        </button>
+        <button id="mob-tab-broadcast" onclick="switchTab('broadcast')" class="py-2 rounded-lg text-xs font-semibold transition-all text-zinc-400 hover:text-zinc-200 flex items-center justify-center gap-1.5">
+          <i data-lucide="mail" class="w-3.5 h-3.5"></i>
+          <span>Broadcast Studio</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- MAIN RESPONSIVE CONTAINER -->
+  <!-- ========================================================================= -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-3.5 sm:p-6 space-y-4 sm:space-y-6">
+
+    <!-- KPI Metric Cards (2x2 on mobile, 4 columns on lg) -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+      
+      <!-- Submissions -->
+      <div class="bg-card border border-border rounded-xl p-3 sm:p-4.5 flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] sm:text-xs font-medium text-zinc-400 uppercase tracking-wider">Submissions</span>
+          <span class="p-1 sm:p-1.5 bg-blue-500/10 text-blue-400 rounded-lg"><i data-lucide="inbox" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i></span>
+        </div>
+        <div class="mt-2 flex items-baseline gap-1.5">
+          <span id="stat-total" class="text-xl sm:text-2xl font-bold text-zinc-100">30</span>
+          <span class="text-[10px] sm:text-xs text-zinc-500 hidden xs:inline">recorded</span>
+        </div>
+        <div class="mt-2 text-[10px] sm:text-[11px] text-zinc-400 flex items-center gap-1">
+          <i data-lucide="check-circle" class="w-3 h-3 text-emerald-400 shrink-0"></i>
+          <span class="truncate">here.now Synced</span>
+        </div>
+      </div>
+
+      <!-- Unique Subscribers -->
+      <div class="bg-card border border-border rounded-xl p-3 sm:p-4.5 flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] sm:text-xs font-medium text-zinc-400 uppercase tracking-wider">Subscribers</span>
+          <span class="p-1 sm:p-1.5 bg-gold/10 text-gold rounded-lg"><i data-lucide="users" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i></span>
+        </div>
+        <div class="mt-2 flex items-baseline gap-1.5">
+          <span id="stat-unique" class="text-xl sm:text-2xl font-bold text-gold">22</span>
+          <span class="text-[10px] sm:text-xs text-zinc-500 hidden xs:inline">verified</span>
+        </div>
+        <div class="mt-2 text-[10px] sm:text-[11px] text-zinc-400 flex items-center gap-1">
+          <i data-lucide="sparkles" class="w-3 h-3 text-gold shrink-0"></i>
+          <span class="truncate">100% Unique</span>
+        </div>
+      </div>
+
+      <!-- Sending Account -->
+      <div class="bg-card border border-border rounded-xl p-3 sm:p-4.5 flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] sm:text-xs font-medium text-zinc-400 uppercase tracking-wider">Sender</span>
+          <span class="p-1 sm:p-1.5 bg-purple-500/10 text-purple-400 rounded-lg"><i data-lucide="send" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i></span>
+        </div>
+        <div class="mt-2">
+          <div class="text-xs sm:text-sm font-semibold text-zinc-200 truncate">gospelnetapp</div>
+          <div class="text-[10px] text-zinc-500 truncate">@gmail.com</div>
+        </div>
+        <div class="mt-2 text-[10px] sm:text-[11px] text-zinc-400 flex items-center gap-1">
+          <i data-lucide="shield-check" class="w-3 h-3 text-emerald-400 shrink-0"></i>
+          <span class="truncate">Verified App Auth</span>
+        </div>
+      </div>
+
+      <!-- Launch Window -->
+      <div class="bg-card border border-border rounded-xl p-3 sm:p-4.5 flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] sm:text-xs font-medium text-zinc-400 uppercase tracking-wider">Target</span>
+          <span class="p-1 sm:p-1.5 bg-amber-500/10 text-amber-400 rounded-lg"><i data-lucide="calendar" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i></span>
+        </div>
+        <div class="mt-2 flex items-baseline gap-1.5">
+          <span class="text-sm sm:text-xl font-bold text-zinc-100">Dec 2026</span>
+        </div>
+        <div class="mt-2 text-[10px] sm:text-[11px] text-zinc-400 flex items-center gap-1">
+          <i data-lucide="clock" class="w-3 h-3 text-amber-400 shrink-0"></i>
+          <span class="truncate">Early Fellowship</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 1: SUBSCRIBERS DIRECTORY (Adaptive Mobile List + Desktop Table) -->
+    <!-- ========================================================================= -->
+    <div id="section-subscribers" class="space-y-3.5 sm:space-y-4">
+      
+      <!-- Action Bar: Search & Bulk Controls -->
+      <div class="bg-card border border-border rounded-xl p-3 sm:p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <!-- Search -->
+        <div class="relative w-full sm:w-72 md:w-80">
+          <i data-lucide="search" class="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+          <input
+            id="search-input"
+            type="text"
+            oninput="handleSearch()"
+            placeholder="Search by name or email..."
+            class="w-full bg-surface border border-border rounded-lg pl-9 pr-3.5 py-2 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-gold transition"
+          />
+        </div>
+
+        <!-- Selection count & batch actions -->
+        <div class="flex items-center justify-between sm:justify-end gap-2.5">
+          <div class="text-xs text-zinc-400 flex items-center gap-1">
+            <span>Selected:</span>
+            <span id="selected-count" class="font-bold text-gold">22</span>
+            <span class="text-zinc-500">/ 22</span>
+          </div>
+          
+          <div class="flex items-center gap-2">
+            <button onclick="toggleSelectAll()" id="btn-select-all" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-border bg-surface hover:bg-zinc-800 text-zinc-200 transition">
+              Deselect All
+            </button>
+            <button onclick="composeToSelected()" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-gold hover:bg-gold-light text-black transition flex items-center gap-1.5 shadow-sm active:scale-95">
+              <i data-lucide="mail" class="w-3.5 h-3.5"></i>
+              <span>Compose</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- DESKTOP / TABLET VIEW: Crisp Data Table (Visible sm and up) -->
+      <div class="hidden sm:block bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+        <div class="overflow-x-auto custom-scrollbar">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-surface/90 border-b border-border text-zinc-400 uppercase text-[10px] tracking-wider">
+                <th class="py-3 px-4 w-10 text-center">
+                  <input type="checkbox" id="master-checkbox" checked onchange="toggleMasterCheckbox(this.checked)" class="rounded border-zinc-700 bg-surface accent-gold cursor-pointer" />
+                </th>
+                <th class="py-3 px-4 font-semibold">Subscriber</th>
+                <th class="py-3 px-4 font-semibold">Email Address</th>
+                <th class="py-3 px-4 font-semibold">Signed Up</th>
+                <th class="py-3 px-4 font-semibold">Status</th>
+                <th class="py-3 px-4 text-right font-semibold">Direct Action</th>
+              </tr>
+            </thead>
+            <tbody id="subscribers-tbody" class="divide-y divide-border/60">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+        <!-- Table Footer -->
+        <div class="px-4 py-3 border-t border-border bg-surface/30 flex items-center justify-between text-xs text-zinc-400">
+          <span id="footer-count">Showing 22 unique contacts</span>
+          <span class="text-[11px] text-zinc-500">Live data from here.now `waitlist`</span>
+        </div>
+      </div>
+
+      <!-- MOBILE VIEW: Compact Native Card List (Visible only on < sm) -->
+      <div id="subscribers-mobile-list" class="sm:hidden space-y-2.5">
+        <!-- Rendered via JS -->
+      </div>
+      
+      <!-- Mobile Footer Counter -->
+      <div class="sm:hidden text-center py-2 text-[11px] text-zinc-500">
+        <span id="mob-footer-count">22 subscribers total</span>
+      </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 2: BROADCAST STUDIO -->
+    <!-- ========================================================================= -->
+    <div id="section-broadcast" class="hidden space-y-4 sm:space-y-6">
+      
+      <!-- Mobile View Sub-Switcher: Compose Form vs Inbox Preview (Shown only on mobile) -->
+      <div class="grid grid-cols-2 gap-1 p-1 bg-surface border border-border rounded-xl lg:hidden">
+        <button id="mob-view-composer" onclick="switchMobileBroadcastView('composer')" class="py-1.5 rounded-lg text-xs font-semibold bg-card text-gold border border-border flex items-center justify-center gap-1.5 shadow-sm">
+          <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+          <span>Edit Email</span>
+        </button>
+        <button id="mob-view-preview" onclick="switchMobileBroadcastView('preview')" class="py-1.5 rounded-lg text-xs font-semibold text-zinc-400 hover:text-zinc-200 flex items-center justify-center gap-1.5">
+          <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+          <span>Preview Inbox</span>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+
+        <!-- Left Column: Composer Form (7 Cols) -->
+        <div id="col-composer" class="lg:col-span-7 bg-card border border-border rounded-xl p-4 sm:p-5 space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-border pb-3">
+            <div>
+              <h2 class="font-bold text-sm sm:text-base text-zinc-100 flex items-center gap-2">
+                <i data-lucide="edit-3" class="w-4 h-4 text-gold"></i>
+                <span>Broadcast Composer</span>
+              </h2>
+              <p class="text-xs text-zinc-400">Craft personalized announcements to your early members.</p>
+            </div>
+            <!-- Preset Template Selector -->
+            <select id="template-selector" onchange="applyTemplate(this.value)" class="w-full sm:w-auto bg-surface border border-border text-zinc-200 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-gold">
+              <option value="welcome">Preset: Early Access Welcome</option>
+              <option value="beta">Preset: Private Beta Invite</option>
+              <option value="update">Preset: Fellowship Launch Update</option>
+              <option value="blank">Blank Template</option>
+            </select>
+          </div>
+
+          <!-- Sender & Recipient Metadata -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+            <div>
+              <label class="block text-zinc-400 mb-1 font-medium text-[11px]">From:</label>
+              <div class="bg-surface border border-border rounded-lg px-3 py-2 text-zinc-200 flex items-center justify-between">
+                <span class="truncate">Gospel Team &lt;gospelnetapp@gmail.com&gt;</span>
+                <i data-lucide="lock" class="w-3 h-3 text-zinc-500 shrink-0 ml-1"></i>
+              </div>
+            </div>
+            <div>
+              <label class="block text-zinc-400 mb-1 font-medium text-[11px]">To:</label>
+              <div class="bg-surface border border-border rounded-lg px-3 py-2 text-gold font-medium flex items-center justify-between">
+                <span id="broadcast-recipient-count" class="truncate">22 Selected Subscribers</span>
+                <button onclick="switchTab('subscribers')" class="text-xs text-zinc-400 hover:text-zinc-200 underline shrink-0 ml-1">Change</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Subject Line -->
+          <div>
+            <div class="flex items-center justify-between mb-1 text-[11px]">
+              <label for="broadcast-subject" class="font-medium text-zinc-300">Subject Line:</label>
+              <span class="text-zinc-500">Supports <code class="text-gold">{{name}}</code></span>
+            </div>
+            <input
+              id="broadcast-subject"
+              type="text"
+              oninput="updatePreview()"
+              class="w-full bg-surface border border-border rounded-lg px-3 py-2 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-gold transition"
+              value="Welcome to Gospel, {{name}}! Early Fellowship Access 🕊️"
+            />
+          </div>
+
+          <!-- Personalization Merge Tags -->
+          <div>
+            <span class="text-[11px] text-zinc-500 block mb-1">Insert personalization tag:</span>
+            <div class="flex flex-wrap items-center gap-1.5 text-xs">
+              <button onclick="insertTag('{{name}}')" class="px-2 py-1 rounded bg-surface border border-border text-gold hover:bg-gold/10 transition text-[11px] font-mono">{{name}}</button>
+              <button onclick="insertTag('{{first_name}}')" class="px-2 py-1 rounded bg-surface border border-border text-gold hover:bg-gold/10 transition text-[11px] font-mono">{{first_name}}</button>
+              <button onclick="insertTag('{{app_url}}')" class="px-2 py-1 rounded bg-surface border border-border text-gold hover:bg-gold/10 transition text-[11px] font-mono">{{app_url}}</button>
+            </div>
+          </div>
+
+          <!-- Message Body -->
+          <div>
+            <label for="broadcast-body" class="block text-xs font-medium text-zinc-300 mb-1">Message Body:</label>
+            <textarea
+              id="broadcast-body"
+              rows="8"
+              oninput="updatePreview()"
+              class="w-full bg-surface border border-border rounded-lg p-3 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-gold transition font-sans leading-relaxed custom-scrollbar"
+            ></textarea>
+          </div>
+
+          <!-- Mobile Quick Preview Shortcut (shows only on mobile) -->
+          <button onclick="switchMobileBroadcastView('preview')" class="w-full py-2 rounded-lg bg-surface border border-border text-zinc-300 hover:text-gold text-xs font-medium flex items-center justify-center gap-1.5 lg:hidden">
+            <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+            <span>View Inbox Preview (Mobile Mockup)</span>
+          </button>
+
+          <!-- Action Buttons -->
+          <div class="pt-3 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="text-[11px] text-zinc-400 w-full sm:w-auto text-center sm:text-left">
+              <span class="text-emerald-400">●</span> Verified Google SMTP Engine
+            </div>
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+              <button onclick="openMailtoClient()" class="flex-1 sm:flex-initial px-3.5 py-2 rounded-lg border border-border bg-surface hover:bg-zinc-800 text-zinc-200 text-xs font-medium transition flex items-center justify-center gap-1.5 active:scale-95">
+                <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                <span>Open in Mail App</span>
+              </button>
+              <button onclick="showSendModal()" class="flex-1 sm:flex-initial px-4 py-2 rounded-lg bg-gold hover:bg-gold-light text-black text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-md active:scale-95">
+                <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                <span>Send Batch</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Live Recipient Inbox Preview (5 Cols) -->
+        <div id="col-preview" class="hidden lg:block lg:col-span-5 space-y-4">
+          <div class="bg-card border border-border rounded-xl p-3.5 sm:p-4">
+            
+            <div class="flex items-center justify-between border-b border-border pb-3 mb-3">
+              <div class="flex items-center gap-2">
+                <i data-lucide="smartphone" class="w-4 h-4 text-gold"></i>
+                <h3 class="font-bold text-xs text-zinc-200 uppercase tracking-wider">Inbox Preview</h3>
+              </div>
+              <!-- Preview Recipient Switcher -->
+              <div class="flex items-center gap-1.5 text-[11px] text-zinc-400">
+                <span class="hidden xs:inline">For:</span>
+                <select id="preview-user-select" onchange="updatePreview()" class="bg-surface border border-border text-zinc-200 text-[11px] rounded px-2 py-1 focus:outline-none focus:border-gold">
+                  <!-- Populated in JS -->
+                </select>
+              </div>
+            </div>
+
+            <!-- Realistic Email Client Card -->
+            <div class="bg-white text-zinc-900 rounded-xl p-4 sm:p-5 shadow-lg border border-zinc-200 font-sans text-xs space-y-3">
+              <!-- Sender Header -->
+              <div class="border-b border-zinc-200 pb-3">
+                <div class="flex items-center justify-between text-zinc-500 text-[10px] mb-1">
+                  <span class="font-medium text-zinc-700">Gospel Team</span>
+                  <span>10:00 AM</span>
+                </div>
+                <div id="preview-subject-text" class="font-bold text-sm text-zinc-950 leading-snug break-words">
+                  Welcome to Gospel!
+                </div>
+                <div class="text-[11px] text-zinc-500 mt-1 break-all">
+                  To: <span id="preview-to-name" class="font-semibold text-zinc-800">Maryjane</span> &lt;<span id="preview-to-email">okwumaryjane746@gmail.com</span>&gt;
+                </div>
+              </div>
+
+              <!-- Email Body Rendered -->
+              <div id="preview-body-rendered" class="space-y-3 leading-relaxed text-zinc-800 text-xs pt-1 break-words">
+                <!-- Injected via JS -->
+              </div>
+
+              <!-- Footer Signature -->
+              <div class="pt-4 border-t border-zinc-200 text-[10px] text-zinc-500 text-center space-y-1">
+                <div class="flex items-center justify-center gap-1.5 font-bold text-zinc-900">
+                  <img src="assets/gospel-logo.png" alt="Gospel" class="w-4 h-4 rounded-full object-contain" onerror="this.onerror=null;this.src='icon.png';">
+                  <span>Gospel Fellowship</span>
+                </div>
+                <div>One Platform. One Purpose. One People.</div>
+                <div class="text-[9px] text-zinc-400">© 2026 Gospel. All rights reserved.</div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Command Quick Copy Box -->
+          <div class="bg-card border border-border rounded-xl p-3.5 text-xs space-y-2">
+            <div class="flex items-center justify-between text-zinc-200 font-medium">
+              <span class="flex items-center gap-1.5"><i data-lucide="terminal" class="w-3.5 h-3.5 text-gold"></i> Automated CLI Runner</span>
+              <span class="text-[10px] text-zinc-500">Google SMTP</span>
+            </div>
+            <div class="bg-obsidian border border-border rounded-lg p-2.5 font-mono text-[11px] text-gold flex items-center justify-between select-all">
+              <span class="truncate mr-2">node send-broadcast.mjs --send</span>
+              <button onclick="copyCliCommand()" class="text-zinc-400 hover:text-zinc-200 shrink-0 p-1"><i data-lucide="copy" class="w-3.5 h-3.5"></i></button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- SEND CONFIRMATION MODAL -->
+  <!-- ========================================================================= -->
+  <div id="send-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 transition-all">
+    <div class="bg-card border border-border rounded-2xl max-w-md w-full p-5 sm:p-6 space-y-4 shadow-2xl animate-in fade-in zoom-in duration-150">
+      <div class="w-11 h-11 rounded-full bg-gold/15 text-gold flex items-center justify-center mx-auto text-xl">
+        <i data-lucide="send" class="w-5 h-5"></i>
+      </div>
+      <div class="text-center space-y-1">
+        <h3 class="text-base font-bold text-zinc-100">Confirm Broadcast Dispatch</h3>
+        <p class="text-xs text-zinc-400">Personalized emails will be sent from <span class="text-zinc-200 font-semibold">gospelnetapp@gmail.com</span>.</p>
+      </div>
+
+      <div class="bg-surface rounded-xl p-3.5 border border-border text-xs space-y-2">
+        <div class="flex justify-between text-zinc-400">
+          <span>Recipients:</span>
+          <span id="modal-recipients-count" class="text-gold font-bold">22 subscribers</span>
+        </div>
+        <div class="flex justify-between text-zinc-400">
+          <span>Subject:</span>
+          <span id="modal-subject-preview" class="text-zinc-200 font-medium truncate max-w-[180px]">...</span>
+        </div>
+        <div class="flex justify-between text-zinc-400">
+          <span>Delivery:</span>
+          <span class="text-emerald-400 font-semibold">Google SMTP Authenticated</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2.5 pt-1">
+        <button onclick="closeSendModal()" class="flex-1 py-2.5 rounded-lg border border-border text-zinc-400 hover:text-zinc-200 text-xs font-medium transition">
+          Cancel
+        </button>
+        <button onclick="executeSend()" id="modal-confirm-btn" class="flex-1 py-2.5 rounded-lg bg-gold hover:bg-gold-light text-black text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-md">
+          <span>Send Now</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Change Admin Password Modal -->
+  <div id="pwd-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-card border border-gold/40 rounded-2xl max-w-sm w-full p-5 sm:p-6 space-y-4 shadow-2xl relative">
+      <button onclick="closeChangePasswordModal()" class="absolute top-4 right-4 text-zinc-400 hover:text-zinc-200">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gold/10 border border-gold/30 flex items-center justify-center text-gold shrink-0">
+          <i data-lucide="key" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-zinc-100">Set Admin Password</h3>
+          <p class="text-xs text-zinc-400">Set your personal dashboard access password.</p>
+        </div>
+      </div>
+
+      <form onsubmit="handleSaveNewPassword(event)" class="space-y-3 pt-1">
+        <div class="space-y-1">
+          <label class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">New Password</label>
+          <input 
+            type="password" 
+            id="new-admin-password" 
+            required 
+            minlength="6" 
+            placeholder="Enter at least 6 characters" 
+            class="w-full bg-surface border border-border focus:border-gold rounded-xl px-3 py-2.5 text-xs text-zinc-100 outline-none transition"
+          />
+        </div>
+        <div class="space-y-1">
+          <label class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">Confirm New Password</label>
+          <input 
+            type="password" 
+            id="confirm-admin-password" 
+            required 
+            minlength="6" 
+            placeholder="Repeat new password" 
+            class="w-full bg-surface border border-border focus:border-gold rounded-xl px-3 py-2.5 text-xs text-zinc-100 outline-none transition"
+          />
+        </div>
+        <p id="pwd-modal-error" class="text-xs text-rose-400 font-medium hidden"></p>
+
+        <div class="flex items-center gap-2 pt-2">
+          <button type="button" onclick="closeChangePasswordModal()" class="flex-1 py-2.5 rounded-lg border border-border text-zinc-400 hover:text-zinc-200 text-xs font-medium transition">
+            Cancel
+          </button>
+          <button type="submit" class="flex-1 py-2.5 rounded-lg bg-gold hover:bg-gold-light text-black text-xs font-bold transition shadow-md flex items-center justify-center gap-1.5">
+            <i data-lucide="check" class="w-3.5 h-3.5"></i>
+            <span>Save Password</span>
+          </button>
+        </div>
+      </form>
+
+      <div class="pt-2 border-t border-border flex items-center justify-between text-[11px] text-zinc-500">
+        <span>Current status: <span id="pwd-status-text" class="text-zinc-300">Default password active</span></span>
+        <button type="button" onclick="resetPasswordToDefault()" class="text-gold hover:underline">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Notification -->
+  <div id="toast" class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 bg-gold text-black px-4 py-2.5 rounded-xl font-semibold text-xs shadow-2xl hidden items-center gap-2 border border-gold-light">
+    <i data-lucide="check" class="w-4 h-4"></i>
+    <span id="toast-text">Success</span>
+  </div>
+
+  <!-- JavaScript Application State & Interactions -->
+  <script>
+    function openChangePasswordModal() {
+      const modal = document.getElementById("pwd-modal");
+      if (modal) {
+        document.getElementById("new-admin-password").value = "";
+        document.getElementById("confirm-admin-password").value = "";
+        document.getElementById("pwd-modal-error").classList.add("hidden");
+        const customHash = localStorage.getItem("gospel_custom_admin_hash");
+        document.getElementById("pwd-status-text").textContent = customHash ? "Custom password configured" : "Default (gospel2026)";
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+        lucide.createIcons();
+      }
+    }
+
+    function closeChangePasswordModal() {
+      const modal = document.getElementById("pwd-modal");
+      if (modal) {
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+      }
+    }
+
+    async function handleSaveNewPassword(event) {
+      event.preventDefault();
+      const p1 = document.getElementById("new-admin-password").value.trim();
+      const p2 = document.getElementById("confirm-admin-password").value.trim();
+      const err = document.getElementById("pwd-modal-error");
+
+      if (p1 !== p2) {
+        err.textContent = "Passwords do not match. Please re-enter.";
+        err.classList.remove("hidden");
+        return;
+      }
+
+      if (p1.length < 6) {
+        err.textContent = "Password must be at least 6 characters.";
+        err.classList.remove("hidden");
+        return;
+      }
+
+      const hash = await sha256Hex(p1);
+      localStorage.setItem("gospel_custom_admin_hash", hash);
+      closeChangePasswordModal();
+      lockDashboard();
+      updateLockScreenBadge();
+      showToast("Admin password updated! Please enter your new password to verify.");
+    }
+
+    function resetPasswordToDefault() {
+      if (confirm("Reset administrator password back to default (gospel2026)?")) {
+        localStorage.removeItem("gospel_custom_admin_hash");
+        document.getElementById("pwd-status-text").textContent = "Default (gospel2026)";
+        closeChangePasswordModal();
+        lockDashboard();
+        updateLockScreenBadge();
+        showToast("Password reset to default (gospel2026).");
+      }
+    }
+
+    function updateLockScreenBadge() {
+      const customHash = localStorage.getItem("gospel_custom_admin_hash");
+      const title = document.getElementById("auth-hint-title");
+      const sub = document.getElementById("auth-hint-sub");
+      if (!title || !sub) return;
+      if (customHash) {
+        title.innerHTML = `<span class="text-emerald-400 font-semibold flex items-center justify-center gap-1"><i data-lucide="shield-check" class="w-3.5 h-3.5 inline"></i> Custom Password Active</span>`;
+        sub.innerHTML = `Default setup key has been disabled. Enter your custom password.`;
+      } else {
+        title.innerHTML = `Setup key: <code class="text-gold font-mono font-bold bg-zinc-900 px-1.5 py-0.5 rounded border border-gold/30">gospel2026</code>`;
+        sub.innerHTML = `You can customize or change your password once logged in.`;
+      }
+      lucide.createIcons();
+    }
+
+    // Valid SHA-256 password hashes:
+    // "gospel2026"      -> 74c15ec876e6cab6a25b5c58fc15174bfe9e80061253d84ed92b6fa73ab563a5
+    // "GospelAdmin2026!" -> e66d76fd4772d69933e11e36372239491049cc18bc90400e30643a9a0febfb6f
+    const VALID_ADMIN_HASHES = [
+      "74c15ec876e6cab6a25b5c58fc15174bfe9e80061253d84ed92b6fa73ab563a5",
+      "e66d76fd4772d69933e11e36372239491049cc18bc90400e30643a9a0febfb6f"
+    ];
+
+    async function sha256Hex(str) {
+      const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+    }
+
+    async function handleAuthSubmit(event) {
+      event.preventDefault();
+      const input = document.getElementById("admin-password-input");
+      const errorMsg = document.getElementById("auth-error-msg");
+      const btn = document.getElementById("auth-submit-btn");
+      const val = (input.value || "").trim();
+      if (!val) return;
+
+      btn.disabled = true;
+      btn.innerHTML = `<span class="animate-spin mr-1">⏳</span> Verifying...`;
+
+      try {
+        const hash = await sha256Hex(val);
+        const customHash = localStorage.getItem("gospel_custom_admin_hash");
+        const isMatch = customHash ? (hash === customHash) : VALID_ADMIN_HASHES.includes(hash);
+
+        if (isMatch) {
+          const remember = document.getElementById("auth-remember-me").checked;
+          sessionStorage.setItem("gospel_admin_auth", "valid");
+          if (remember) {
+            localStorage.setItem("gospel_admin_auth", "valid");
+          }
+          errorMsg.classList.add("hidden");
+          unlockDashboardUI();
+          showToast("Dashboard unlocked. Welcome, Administrator!");
+        } else {
+          errorMsg.classList.remove("hidden");
+          input.parentElement.classList.add("shake");
+          setTimeout(() => input.parentElement.classList.remove("shake"), 400);
+          input.select();
+        }
+      } catch (err) {
+        console.error("Auth check failed:", err);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="lock" class="w-3.5 h-3.5 text-black"></i><span>Unlock Dashboard</span>`;
+        lucide.createIcons();
+      }
+    }
+
+    function togglePasswordVisibility() {
+      const input = document.getElementById("admin-password-input");
+      const icon = document.getElementById("toggle-pwd-icon");
+      if (input.type === "password") {
+        input.type = "text";
+        icon.setAttribute("data-lucide", "eye-off");
+      } else {
+        input.type = "password";
+        icon.setAttribute("data-lucide", "eye");
+      }
+      lucide.createIcons();
+    }
+
+    function unlockDashboardUI() {
+      const gate = document.getElementById("auth-gate");
+      if (gate) {
+        gate.classList.add("opacity-0", "pointer-events-none");
+        setTimeout(() => gate.classList.add("hidden"), 300);
+      }
+      init();
+    }
+
+    function lockDashboard() {
+      sessionStorage.removeItem("gospel_admin_auth");
+      localStorage.removeItem("gospel_admin_auth");
+      updateLockScreenBadge();
+      const gate = document.getElementById("auth-gate");
+      if (gate) {
+        gate.classList.remove("hidden", "opacity-0", "pointer-events-none");
+        const input = document.getElementById("admin-password-input");
+        if (input) {
+          input.value = "";
+          setTimeout(() => input.focus(), 100);
+        }
+      }
+      showToast("Dashboard locked. Session terminated.");
+    }
+
+    // Historical base subscribers pulled from here.now
+    const DEFAULT_SUBSCRIBERS = [
+      { id: "1", name: "Maryjane", email: "okwumaryjane746@gmail.com", date: "2026-09-01", selected: true },
+      { id: "2", name: "Abigail Monday", email: "inibong2006monday@gmail.com", date: "2026-08-25", selected: true },
+      { id: "3", name: "Lady Joy", email: "ladyjoy1818@gmail.com", date: "2026-08-25", selected: true },
+      { id: "4", name: "Jonathan Iwan", email: "goode14336@gmail.com", date: "2026-08-25", selected: true },
+      { id: "5", name: "David oshiomah", email: "davidoshiomah2009@gmail.com", date: "2026-08-08", selected: true },
+      { id: "6", name: "Ojoma Chukwuemeka David", email: "davidamaechi073@gmail.com", date: "2026-08-08", selected: true },
+      { id: "7", name: "Prince", email: "ovunwoprince22@icloud.com", date: "2026-08-08", selected: true },
+      { id: "8", name: "Ben-Council Grace", email: "bencouncilgrace@gmail.com", date: "2026-08-08", selected: true },
+      { id: "9", name: "Daniels justice", email: "jalumonah@gmail.com", date: "2026-08-08", selected: true },
+      { id: "10", name: "Obi success", email: "obisuccessebi2004@gmail.com", date: "2026-07-21", selected: true },
+      { id: "11", name: "Onita Peace obiazi", email: "onitapeace6@gmail.com", date: "2026-07-20", selected: true },
+      { id: "12", name: "Memoye David", email: "kalodedavid@gmail.com", date: "2026-07-20", selected: true },
+      { id: "13", name: "Osere Constance", email: "constanceosere69@gmail.com", date: "2026-07-15", selected: true },
+      { id: "14", name: "Oluwole Ayomide", email: "oluwoleayomide999@gmail.com", date: "2026-07-14", selected: true },
+      { id: "15", name: "Prayer Benjamin", email: "benjaminprayer18@gmail.com", date: "2026-07-14", selected: true },
+      { id: "16", name: "Maureen", email: "oputam27@gmail.com", date: "2026-07-14", selected: true },
+      { id: "17", name: "Benjamin", email: "banty3d@gmail.com", date: "2026-07-14", selected: true },
+      { id: "18", name: "Osoh Ifeanyi Chukwulanigam Genevieve", email: "osohnigam798@gmail.com", date: "2026-07-14", selected: true },
+      { id: "19", name: "Joseph blessing", email: "ngozijoseph708@gmail.com", date: "2026-07-14", selected: true },
+      { id: "20", name: "Emmanuel chukwudi", email: "ec747114@gmail.com", date: "2026-07-13", selected: true },
+      { id: "21", name: "Sebastian Wesley", email: "oserewesleyestrella@gmail.com", date: "2026-07-12", selected: true },
+      { id: "22", name: "Coder json", email: "sebastianfranklin13@gmail.com", date: "2026-07-12", selected: true }
+    ];
+
+    let SUBSCRIBERS = [...DEFAULT_SUBSCRIBERS];
+    let knownEmails = new Set(SUBSCRIBERS.map(s => s.email.toLowerCase()));
+    let isInitialSyncDone = false;
+    let totalSubmissionsCount = 30;
+
+    const TEMPLATES = {
+      welcome: {
+        subject: "Welcome to Gospel, {{name}}! Early Fellowship Access 🕊️",
+        body: `Dear {{name}},\n\nThank you for requesting early access to Gospel! We are thrilled to welcome you as one of our foundation members.\n\nGospel is being built to unite believers across nations, tribes, and denominations into one digital home for spiritual growth, fellowship, kingdom collaboration, and daily Bible study.\n\nHere is what you can look forward to:\n• Daily structured growth and guided scripture reading\n• Kingdom Communities for believers in tech, ministry, creative work, and business\n• Live fellowship prayer rooms and collaborative mission projects\n\nOur early preview is already live at: {{app_url}}\n\nWe will be reaching out shortly with your personal onboarding invitation. May grace and peace be multiplied to you!\n\nWarmly in Christ,\nThe Gospel Team\ngospelnetapp@gmail.com`
+      },
+      beta: {
+        subject: "You're Invited: Gospel Private Beta Testing (Action Required)",
+        body: `Hi {{first_name}},\n\nBecause you joined our waiting list early, we are excited to invite you to the private beta testing of Gospel!\n\nYou can access the live web build directly on your browser or install it as an offline-first app on your home screen:\n👉 {{app_url}}\n\nPlease explore the scriptures, notes, and prayer modules. If you have any feedback, prayer requests, or ideas, simply reply directly to this email.\n\nBlessings,\nThe Gospel Team`
+      },
+      update: {
+        subject: "Gospel Update: Launch Countdown & New Features",
+        body: `Hello {{name}},\n\nWe wanted to share a quick update on what the Gospel team has been building behind the scenes:\n\n1. Offline-First KJV Scripture Engine: Instant search across all 66 books with zero loading latency.\n2. Encrypted Notes & Private Prayer Journal: Your personal walk with God, protected and backed up.\n3. Fellowship Communities: Spaces designed to empower prosperity and kingdom collaboration.\n\nVisit our preview portal at {{app_url}} to test the latest build.\n\nIn fellowship,\nThe Gospel Team`
+      },
+      blank: {
+        subject: "",
+        body: ""
+      }
+    };
+
+    let currentSubscribers = [...SUBSCRIBERS];
+    let isInitialized = false;
+
+    function init() {
+      if (isInitialized) {
+        renderAllViews(currentSubscribers);
+        return;
+      }
+      isInitialized = true;
+      renderAllViews(currentSubscribers);
+      populatePreviewUserSelect();
+      applyTemplate('welcome');
+      lucide.createIcons();
+      
+      // Immediately run first live poll against here.now collection
+      fetchLiveWaitlist(false);
+
+      // Start live background auto-detect polling every 12 seconds
+      setInterval(() => fetchLiveWaitlist(false), 12000);
+
+      // Listen for instant cross-tab events from waitlist submission in other tabs
+      setupCrossTabSync();
+    }
+
+    // Cross-tab real-time event sync
+    function setupCrossTabSync() {
+      try {
+        const syncChannel = new BroadcastChannel('gospel_waitlist_sync');
+        syncChannel.onmessage = (event) => {
+          if (event.data && event.data.type === 'NEW_SIGNUP') {
+            fetchLiveWaitlist(false);
+          }
+        };
+      } catch (_) {}
+
+      window.addEventListener('storage', (e) => {
+        if (e.key === 'gospel_last_signup') {
+          fetchLiveWaitlist(false);
+        }
+      });
+    }
+
+    // Gentle pleasant audio chime for new detections (Web Audio API)
+    function playChimeNotification() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const osc2 = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, now); // D5
+        osc.frequency.exponentialRampToValueAtTime(880, now + 0.15); // A5
+
+        osc2.type = 'triangle';
+        osc2.frequency.setValueAtTime(880, now + 0.15);
+        osc2.frequency.exponentialRampToValueAtTime(1174.66, now + 0.35); // D6
+
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+
+        osc.connect(gain);
+        osc2.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now);
+        osc2.start(now + 0.12);
+        osc.stop(now + 0.6);
+        osc2.stop(now + 0.6);
+      } catch (_) {}
+    }
+
+    // Live Auto-Detection Polling Engine
+    async function fetchLiveWaitlist(isManual = false) {
+      const spinner = document.getElementById('sync-spinner-icon');
+      const statusDot = document.getElementById('sync-status-dot');
+      const autoIndicator = document.getElementById('auto-detect-indicator');
+
+      if (spinner) spinner.classList.add('animate-spin');
+
+      try {
+        // Poll relative collection endpoint (works directly on here.now) or fallback
+        let records = [];
+        let res = null;
+        try {
+          res = await fetch('./.herenow/data/waitlist?limit=100', { cache: 'no-store' });
+        } catch (_) {
+          // If running off-domain, try direct site link
+          res = await fetch('https://boreal-pebble-pj5z.here.now/.herenow/data/waitlist?limit=100', { cache: 'no-store' });
+        }
+
+        if (res && res.ok) {
+          const json = await res.json();
+          records = json.records || [];
+        } else {
+          // Fallback to static snapshot file if offline
+          const fallbackRes = await fetch('./waitlist-signups.json');
+          if (fallbackRes.ok) {
+            const fallbackJson = await fallbackRes.json();
+            records = fallbackJson.map((item, idx) => ({
+              id: item.id || `fb-${idx}`,
+              data: { full_name: item.full_name || item.name, email: item.email },
+              createdAt: item.createdAt || `${item.date || '2026-08-01'}T00:00:00Z`
+            }));
+          }
+        }
+
+        if (records && records.length > 0) {
+          totalSubmissionsCount = records.length;
+          document.getElementById('stat-total').textContent = totalSubmissionsCount;
+
+          // Parse records into de-duplicated subscriber list
+          const emailMap = new Map();
+          records.forEach((rec, idx) => {
+            const name = (rec.data?.full_name || rec.data?.name || 'Beloved').trim();
+            const email = (rec.data?.email || '').trim().toLowerCase();
+            if (!email || !email.includes('@')) return;
+
+            const dateStr = rec.createdAt ? rec.createdAt.substring(0, 10) : new Date().toISOString().substring(0, 10);
+            
+            if (!emailMap.has(email)) {
+              emailMap.set(email, {
+                id: rec.id || `rec-${idx}`,
+                name: name,
+                email: email,
+                date: dateStr,
+                selected: true,
+                isNew: false
+              });
+            }
+          });
+
+          const freshList = Array.from(emailMap.values());
+          const newlyDetected = [];
+
+          // Compare against known emails
+          freshList.forEach(user => {
+            if (!knownEmails.has(user.email)) {
+              user.isNew = true;
+              newlyDetected.push(user);
+              knownEmails.add(user.email);
+            }
+          });
+
+          if (newlyDetected.length > 0) {
+            // New signups detected!
+            playChimeNotification();
+            SUBSCRIBERS = [...newlyDetected, ...SUBSCRIBERS];
+
+            // Re-apply search filter
+            const query = document.getElementById('search-input')?.value.toLowerCase() || '';
+            currentSubscribers = query 
+              ? SUBSCRIBERS.filter(u => u.name.toLowerCase().includes(query) || u.email.toLowerCase().includes(query))
+              : [...SUBSCRIBERS];
+
+            renderAllViews(currentSubscribers);
+            populatePreviewUserSelect();
+
+            const firstName = newlyDetected[0].name.split(' ')[0] || newlyDetected[0].name;
+            const msg = newlyDetected.length === 1 
+              ? `✨ New Waitlist Signup Detected: ${firstName} (${newlyDetected[0].email})`
+              : `✨ ${newlyDetected.length} New Waitlist Signups Detected!`;
+            
+            showToast(msg);
+
+            if (autoIndicator) {
+              autoIndicator.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span><span class="text-emerald-400 font-bold">+${newlyDetected.length} New Detected!</span>`;
+              setTimeout(() => {
+                autoIndicator.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-gold animate-ping"></span><span>Auto-detecting signups</span>`;
+              }, 6000);
+            }
+          } else {
+            if (!isInitialSyncDone) {
+              // Initial sync: align order and counts
+              if (freshList.length > 0) {
+                // Keep selections from current state
+                freshList.forEach(f => {
+                  const existing = SUBSCRIBERS.find(s => s.email.toLowerCase() === f.email);
+                  if (existing) f.selected = existing.selected;
+                });
+                SUBSCRIBERS = freshList;
+                currentSubscribers = [...SUBSCRIBERS];
+                renderAllViews(currentSubscribers);
+                populatePreviewUserSelect();
+              }
+              isInitialSyncDone = true;
+            }
+
+            if (isManual) {
+              showToast(`✓ Live sync complete: All ${SUBSCRIBERS.length} subscribers are up to date.`);
+            }
+          }
+
+          // Update unique subscriber count KPI
+          document.getElementById('stat-unique').textContent = SUBSCRIBERS.length;
+          if (statusDot) {
+            statusDot.className = "w-1.5 h-1.5 rounded-full bg-emerald-400";
+          }
+        }
+      } catch (err) {
+        console.warn("Live waitlist poll notice:", err);
+        if (isManual) {
+          showToast(`Synced ${SUBSCRIBERS.length} cached subscribers.`);
+        }
+      } finally {
+        if (spinner) {
+          setTimeout(() => spinner.classList.remove('animate-spin'), 400);
+        }
+      }
+    }
+
+    function renderAllViews(list) {
+      renderDesktopTable(list);
+      renderMobileCardList(list);
+      updateSelectionCounts();
+      lucide.createIcons();
+    }
+
+    // 1. Desktop Table Renderer
+    function renderDesktopTable(list) {
+      const tbody = document.getElementById('subscribers-tbody');
+      tbody.innerHTML = '';
+
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-zinc-500 text-xs">No subscribers found matching your search.</td></tr>`;
+        return;
+      }
+
+      list.forEach((user) => {
+        const tr = document.createElement('tr');
+        const isNewClass = user.isNew ? 'bg-gold/10 border-l-2 border-l-gold' : 'hover:bg-surface/50';
+        tr.className = `${isNewClass} transition border-b border-border/40 text-zinc-300`;
+        tr.innerHTML = `
+          <td class="py-3 px-4 text-center">
+            <input type="checkbox" ${user.selected ? 'checked' : ''} onchange="toggleSelectUser('${user.id}', this.checked)" class="rounded border-zinc-700 bg-surface accent-gold cursor-pointer" />
+          </td>
+          <td class="py-3 px-4 font-medium text-zinc-100 flex items-center gap-2">
+            <div class="w-6 h-6 rounded-full bg-gold/15 text-gold text-[10px] font-bold flex items-center justify-center shrink-0">
+              ${user.name.charAt(0).toUpperCase()}
+            </div>
+            <span class="truncate">${user.name}</span>
+            ${user.isNew ? '<span class="px-1.5 py-0.2 text-[9px] font-bold bg-gold/25 text-gold border border-gold/40 rounded-full animate-pulse">NEW</span>' : ''}
+          </td>
+          <td class="py-3 px-4 font-mono text-zinc-400">${user.email}</td>
+          <td class="py-3 px-4 text-zinc-400 font-mono text-xs">${user.date}</td>
+          <td class="py-3 px-4">
+            <span class="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <span class="w-1 h-1 rounded-full bg-emerald-400"></span> Confirmed
+            </span>
+          </td>
+          <td class="py-3 px-4 text-right">
+            <button onclick="composeSingle('${user.email}')" class="text-xs text-gold hover:text-gold-light hover:underline font-semibold">
+              Message
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // 2. Mobile Card List Renderer (Optimized for touch screens)
+    function renderMobileCardList(list) {
+      const mobContainer = document.getElementById('subscribers-mobile-list');
+      mobContainer.innerHTML = '';
+
+      if (list.length === 0) {
+        mobContainer.innerHTML = `<div class="p-6 text-center text-zinc-500 text-xs bg-card border border-border rounded-xl">No subscribers found matching your search.</div>`;
+        return;
+      }
+
+      list.forEach((user) => {
+        const card = document.createElement('div');
+        const isNewBorder = user.isNew ? 'border-gold bg-gold/10' : (user.selected ? 'bg-surface border-gold/40' : 'bg-card border-border');
+        card.className = `p-3 rounded-xl border transition-all flex items-start gap-3 ${isNewBorder}`;
+        card.innerHTML = `
+          <div class="pt-0.5">
+            <input type="checkbox" ${user.selected ? 'checked' : ''} onchange="toggleSelectUser('${user.id}', this.checked)" class="w-4 h-4 rounded border-zinc-700 bg-surface accent-gold cursor-pointer" />
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between gap-1">
+              <div class="font-semibold text-xs text-zinc-100 truncate flex items-center gap-1.5">
+                <span>${user.name}</span>
+                ${user.isNew ? '<span class="px-1.5 py-0.2 text-[8px] font-bold bg-gold/25 text-gold border border-gold/40 rounded-full animate-pulse">NEW</span>' : ''}
+              </div>
+              <span class="text-[10px] text-zinc-500 shrink-0 font-mono">${user.date}</span>
+            </div>
+            <div class="text-[11px] font-mono text-zinc-400 truncate mt-0.5">${user.email}</div>
+            <div class="flex items-center justify-between gap-2 mt-2 pt-2 border-t border-border/50">
+              <span class="inline-flex items-center gap-1 text-[9px] font-semibold text-emerald-400">
+                <span class="w-1 h-1 rounded-full bg-emerald-400"></span> Verified Waitlist
+              </span>
+              <button onclick="composeSingle('${user.email}')" class="text-[11px] text-gold font-semibold hover:underline">
+                Send Direct →
+              </button>
+            </div>
+          </div>
+        `;
+        mobContainer.appendChild(card);
+      });
+    }
+
+    function toggleSelectUser(id, isChecked) {
+      const user = SUBSCRIBERS.find(u => u.id === id);
+      if (user) user.selected = isChecked;
+      renderAllViews(currentSubscribers);
+    }
+
+    function toggleMasterCheckbox(checked) {
+      currentSubscribers.forEach(u => u.selected = checked);
+      renderAllViews(currentSubscribers);
+    }
+
+    function toggleSelectAll() {
+      const anySelected = SUBSCRIBERS.some(u => u.selected);
+      SUBSCRIBERS.forEach(u => u.selected = !anySelected);
+      const master = document.getElementById('master-checkbox');
+      if (master) master.checked = !anySelected;
+      document.getElementById('btn-select-all').textContent = anySelected ? "Select All" : "Deselect All";
+      renderAllViews(currentSubscribers);
+    }
+
+    function updateSelectionCounts() {
+      const selected = SUBSCRIBERS.filter(u => u.selected).length;
+      document.getElementById('selected-count').textContent = selected;
+      document.getElementById('desk-badge-total').textContent = selected;
+      document.getElementById('mob-badge-total').textContent = selected;
+      document.getElementById('broadcast-recipient-count').textContent = `${selected} Selected Subscribers`;
+      document.getElementById('footer-count').textContent = `Showing ${currentSubscribers.length} unique contacts (${selected} selected)`;
+      document.getElementById('mob-footer-count').textContent = `${currentSubscribers.length} subscribers shown (${selected} selected)`;
+      document.getElementById('modal-recipients-count').textContent = `${selected} subscribers`;
+    }
+
+    function handleSearch() {
+      const query = document.getElementById('search-input').value.toLowerCase();
+      currentSubscribers = SUBSCRIBERS.filter(u =>
+        u.name.toLowerCase().includes(query) || u.email.toLowerCase().includes(query)
+      );
+      renderAllViews(currentSubscribers);
+    }
+
+    // Top Level Tabs
+    function switchTab(tab) {
+      const dSub = document.getElementById('desk-tab-subscribers');
+      const dBrd = document.getElementById('desk-tab-broadcast');
+      const mSub = document.getElementById('mob-tab-subscribers');
+      const mBrd = document.getElementById('mob-tab-broadcast');
+      const secSub = document.getElementById('section-subscribers');
+      const secBrd = document.getElementById('section-broadcast');
+
+      if (tab === 'subscribers') {
+        dSub.className = "px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all bg-card text-zinc-100 shadow-sm border border-border flex items-center gap-1.5";
+        dBrd.className = "px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all text-zinc-400 hover:text-zinc-200 flex items-center gap-1.5";
+        mSub.className = "py-2 rounded-lg text-xs font-semibold transition-all bg-card text-zinc-100 shadow-sm border border-border flex items-center justify-center gap-1.5";
+        mBrd.className = "py-2 rounded-lg text-xs font-semibold transition-all text-zinc-400 hover:text-zinc-200 flex items-center justify-center gap-1.5";
+        secSub.classList.remove('hidden');
+        secBrd.classList.add('hidden');
+      } else {
+        dBrd.className = "px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all bg-card text-zinc-100 shadow-sm border border-border flex items-center gap-1.5";
+        dSub.className = "px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all text-zinc-400 hover:text-zinc-200 flex items-center gap-1.5";
+        mBrd.className = "py-2 rounded-lg text-xs font-semibold transition-all bg-card text-zinc-100 shadow-sm border border-border flex items-center justify-center gap-1.5";
+        mSub.className = "py-2 rounded-lg text-xs font-semibold transition-all text-zinc-400 hover:text-zinc-200 flex items-center justify-center gap-1.5";
+        secBrd.classList.remove('hidden');
+        secSub.classList.add('hidden');
+        updatePreview();
+      }
+      lucide.createIcons();
+    }
+
+    // Mobile View Sub-Switcher
+    function switchMobileBroadcastView(view) {
+      const colComp = document.getElementById('col-composer');
+      const colPrev = document.getElementById('col-preview');
+      const btnComp = document.getElementById('mob-view-composer');
+      const btnPrev = document.getElementById('mob-view-preview');
+
+      if (view === 'composer') {
+        colComp.classList.remove('hidden');
+        colPrev.classList.add('hidden');
+        colPrev.classList.remove('block');
+        btnComp.className = "py-1.5 rounded-lg text-xs font-semibold bg-card text-gold border border-border flex items-center justify-center gap-1.5 shadow-sm";
+        btnPrev.className = "py-1.5 rounded-lg text-xs font-semibold text-zinc-400 hover:text-zinc-200 flex items-center justify-center gap-1.5";
+      } else {
+        colComp.classList.add('hidden');
+        colPrev.classList.remove('hidden');
+        colPrev.classList.add('block');
+        btnPrev.className = "py-1.5 rounded-lg text-xs font-semibold bg-card text-gold border border-border flex items-center justify-center gap-1.5 shadow-sm";
+        btnComp.className = "py-1.5 rounded-lg text-xs font-semibold text-zinc-400 hover:text-zinc-200 flex items-center justify-center gap-1.5";
+        updatePreview();
+      }
+      lucide.createIcons();
+    }
+
+    function composeToSelected() {
+      switchTab('broadcast');
+    }
+
+    function composeSingle(email) {
+      const user = SUBSCRIBERS.find(u => u.email === email);
+      const name = user ? user.name : 'Subscriber';
+      SUBSCRIBERS.forEach(u => u.selected = (u.email === email));
+      renderAllViews(currentSubscribers);
+      switchTab('broadcast');
+      showToast(`Selected ${name} for direct message`);
+    }
+
+    function applyTemplate(key) {
+      const tmpl = TEMPLATES[key];
+      if (tmpl) {
+        document.getElementById('broadcast-subject').value = tmpl.subject;
+        document.getElementById('broadcast-body').value = tmpl.body;
+        updatePreview();
+      }
+    }
+
+    function insertTag(tag) {
+      const bodyEl = document.getElementById('broadcast-body');
+      const start = bodyEl.selectionStart;
+      const end = bodyEl.selectionEnd;
+      const text = bodyEl.value;
+      bodyEl.value = text.substring(0, start) + tag + text.substring(end);
+      bodyEl.focus();
+      bodyEl.selectionStart = bodyEl.selectionEnd = start + tag.length;
+      updatePreview();
+    }
+
+    function populatePreviewUserSelect() {
+      const select = document.getElementById('preview-user-select');
+      if (!select) return;
+      select.innerHTML = '';
+      SUBSCRIBERS.slice(0, 15).forEach(u => {
+        const opt = document.createElement('option');
+        opt.value = u.email;
+        opt.textContent = u.name;
+        select.appendChild(opt);
+      });
+    }
+
+    function updatePreview() {
+      const selectEl = document.getElementById('preview-user-select');
+      const selectedEmail = selectEl ? selectEl.value : (SUBSCRIBERS[0]?.email || '');
+      const user = SUBSCRIBERS.find(u => u.email === selectedEmail) || SUBSCRIBERS[0] || { name: 'Beloved', email: 'beloved@gospel.org' };
+
+      const firstName = user.name.split(' ')[0] || user.name;
+
+      const rawSubject = document.getElementById('broadcast-subject').value;
+      const rawBody = document.getElementById('broadcast-body').value;
+
+      const renderedSubject = rawSubject
+        .replace(/{{name}}/g, user.name)
+        .replace(/{{first_name}}/g, firstName)
+        .replace(/{{email}}/g, user.email)
+        .replace(/{{app_url}}/g, '');
+
+      const renderedBody = rawBody
+        .replace(/{{name}}/g, user.name)
+        .replace(/{{first_name}}/g, firstName)
+        .replace(/{{email}}/g, user.email)
+        .replace(/{{app_url}}/g, '')
+        .replace(/\n\n/g, '</p><p class="mb-2">')
+        .replace(/\n/g, '<br/>');
+
+      document.getElementById('preview-subject-text').textContent = renderedSubject;
+      document.getElementById('preview-to-name').textContent = user.name;
+      document.getElementById('preview-to-email').textContent = user.email;
+      document.getElementById('preview-body-rendered').innerHTML = `<p class="mb-2">${renderedBody}</p>`;
+    }
+
+    function openMailtoClient() {
+      const selectedUsers = SUBSCRIBERS.filter(u => u.selected);
+      if (selectedUsers.length === 0) {
+        alert("Please select at least one subscriber.");
+        return;
+      }
+
+      const bccList = selectedUsers.map(u => u.email).join(',');
+      const subject = encodeURIComponent(document.getElementById('broadcast-subject').value.replace(/{{name}}/g, 'Beloved'));
+      const body = encodeURIComponent(document.getElementById('broadcast-body').value.replace(/{{name}}/g, 'Beloved'));
+
+      window.open(`mailto:gospelnetapp@gmail.com?bcc=${bccList}&subject=${subject}&body=${body}`, '_blank');
+      showToast("Opened default mail app with recipients");
+    }
+
+    function showSendModal() {
+      const selectedUsers = SUBSCRIBERS.filter(u => u.selected);
+      if (selectedUsers.length === 0) {
+        alert("Please select at least one subscriber.");
+        return;
+      }
+      document.getElementById('modal-subject-preview').textContent = document.getElementById('broadcast-subject').value;
+      document.getElementById('send-modal').classList.remove('hidden');
+      document.getElementById('send-modal').classList.add('flex');
+    }
+
+    function closeSendModal() {
+      document.getElementById('send-modal').classList.add('hidden');
+      document.getElementById('send-modal').classList.remove('flex');
+    }
+
+    // Broadcast sending — two paths, picked automatically:
+    //   1. GitHub Action (preferred): needs GH_REPO + GH_TOKEN configured below.
+    //      Password lives in the repo secret, never here. Button fires the Action.
+    //   2. Cloudflare Worker fallback (needs Gmail OAuth secrets — see SENDER_SETUP.md).
+    const SEND_API_URL = "https://gospel-waitlist-sender.trixeltechnologies.workers.dev";
+    let SEND_API_TOKEN = "";
+
+    // Fill these in to let the dashboard button fire the GitHub Action directly.
+    // GH_TOKEN should be a fine-grained PAT with Actions:read+write on this repo ONLY.
+    // It can only trigger the broadcast — it never sees the Gmail password.
+    const GH_REPO = "Sebfranklin/codespaces-blank";   // e.g. "Sebfranklin/codespaces-blank"
+    let GH_TOKEN = "";    // paste at runtime via prompt (never commit it here)
+
+    function ghHeaders() {
+      return {
+        "Accept": "application/vnd.github+json",
+        ...(GH_TOKEN ? { "Authorization": `Bearer ${GH_TOKEN}` } : {}),
+      };
+    }
+
+    async function fireBroadcastAction(payload) {
+      const res = await fetch(`https://api.github.com/repos/${GH_REPO}/dispatches`, {
+        method: "POST",
+        headers: { ...ghHeaders(), "Content-Type": "application/json" },
+        body: JSON.stringify({ event_type: "gospel-broadcast", client_payload: payload }),
+      });
+      if (res.status === 204) return true;
+      const text = await res.text().catch(() => "");
+      throw new Error(`GitHub dispatch ${res.status}: ${text.slice(0, 160)}`);
+    }
+
+    async function sendViaWorker(subject, body, selected) {
+      let sent = 0, failed = 0;
+      const errors = [];
+      for (let i = 0; i < selected.length; i += 40) {
+        const chunk = selected.slice(i, i + 40).map(u => ({ name: u.name, email: u.email }));
+        const res = await fetch(`${SEND_API_URL}/api/send`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(SEND_API_TOKEN ? { "Authorization": `Bearer ${SEND_API_TOKEN}` } : {}),
+          },
+          body: JSON.stringify({ subject, body, recipients: chunk }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data.ok === false && (data.sent | 0) === 0) {
+          failed += chunk.length;
+          errors.push(data.error || `HTTP ${res.status}`);
+        } else {
+          sent += data.sent | 0;
+          failed += data.failed | 0;
+          (data.results || []).filter(r => !r.ok).forEach(r => errors.push(`${r.email}: ${r.error || "failed"}`));
+        }
+      }
+      return { sent, failed, errors };
+    }
+
+    async function executeSend() {
+      const selected = SUBSCRIBERS.filter(u => u.selected);
+      if (selected.length === 0) { alert("Please select at least one subscriber."); return; }
+      const btn = document.getElementById('modal-confirm-btn');
+      const subject = document.getElementById('broadcast-subject').value;
+      const body = document.getElementById('broadcast-body').value;
+
+      btn.innerHTML = `<span class="animate-spin mr-1">⏳</span> Firing broadcast...`;
+      btn.disabled = true;
+
+      // Path 1: GitHub Action — needs repo + token at runtime (prompted, never stored).
+      if (GH_REPO) {
+        if (!GH_TOKEN) {
+          GH_TOKEN = prompt("Paste your broadcast token (enables Send; stored in memory only):") || "";
+          if (!GH_TOKEN) {
+            btn.innerHTML = `<span>Send Now</span>`;
+            btn.disabled = false;
+            return;
+          }
+        }
+        try {
+          await fireBroadcastAction({ subject, body, limit: String(Math.min(selected.length, 200)) });
+          closeSendModal();
+          showToast(`Broadcast fired! ${selected.length} emails queued — watch Actions tab.`);
+        } catch (err) {
+          console.warn("Dispatch failed:", err);
+          showToast(`Dispatch failed: ${err.message}`.slice(0, 200));
+          GH_TOKEN = ""; // bad token — force re-prompt next time
+        } finally {
+          btn.innerHTML = `<span>Send Now</span>`;
+          btn.disabled = false;
+        }
+        return;
+      }
+
+      // Path 2: Worker fallback (or mailto if no Worker URL).
+      if (!SEND_API_URL) { openMailtoClient(); closeSendModal(); btn.innerHTML = `<span>Send Now</span>`; btn.disabled = false; return; }
+
+      btn.innerHTML = `<span class="animate-spin mr-1">⏳</span> Sending via Gospel sender...`;
+      try {
+        const { sent, failed, errors } = await sendViaWorker(subject, body, selected);
+        closeSendModal();
+        if (failed === 0) showToast(`Broadcast sent! ${sent} emails dispatched via Gospel sender.`);
+        else if (sent > 0) showToast(`Partially sent: ${sent} ok, ${failed} failed. ${errors[0] || ""}`.slice(0, 160));
+        else {
+          const hint = /OAuth|Gmail|not configured/i.test(errors[0] || "")
+            ? "Sender needs Gmail OAuth secrets — see SENDER_SETUP.md."
+            : (errors[0] || "Unknown error");
+          showToast(`Send failed: ${hint}`.slice(0, 200));
+        }
+      } catch (err) {
+        console.warn("Hosted send failed:", err);
+        showToast("Send failed: cannot reach Gospel sender. Check connection.");
+      } finally {
+        btn.innerHTML = `<span>Send Now</span>`;
+        btn.disabled = false;
+      }
+    }
+
+    // Legacy fake sender kept for reference (no longer wired to the button).
+    function executeSendLegacy() {
+      const btn = document.getElementById('modal-confirm-btn');
+      btn.innerHTML = `<span class="animate-spin mr-1">⏳</span> Sending...`;
+      btn.disabled = true;
+
+      setTimeout(() => {
+        closeSendModal();
+        btn.innerHTML = `<span>Send Now</span>`;
+        btn.disabled = false;
+        const count = SUBSCRIBERS.filter(u => u.selected).length;
+        showToast(`Broadcast triggered! ${count} emails dispatched.`);
+      }, 1500);
+    }
+
+    // Dynamic CSV export of all subscribers (including newly detected ones)
+    function exportCSV() {
+      const headers = ["ID", "Full Name", "Email", "Date Added", "Status"];
+      const rows = SUBSCRIBERS.map(u => [
+        `"${u.id}"`,
+        `"${u.name.replace(/"/g, '""')}"`,
+        `"${u.email}"`,
+        `"${u.date}"`,
+        `"Confirmed Waitlist"`
+      ]);
+      const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `gospel-waitlist-subscribers-${new Date().toISOString().substring(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast(`Exported ${SUBSCRIBERS.length} subscribers to CSV!`);
+    }
+
+    function copyCliCommand() {
+      const cmd = "node send-broadcast.mjs --send";
+      navigator.clipboard.writeText(cmd);
+      showToast("CLI command copied to clipboard!");
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-text').textContent = msg;
+      toast.classList.remove('hidden');
+      toast.classList.add('flex');
+      setTimeout(() => {
+        toast.classList.add('hidden');
+        toast.classList.remove('flex');
+      }, 4000);
+    }
+
+    window.onload = () => {
+      const isAuth = sessionStorage.getItem("gospel_admin_auth") === "valid" || localStorage.getItem("gospel_admin_auth") === "valid";
+      if (isAuth) {
+        const gate = document.getElementById("auth-gate");
+        if (gate) gate.classList.add("hidden");
+        init();
+      } else {
+        updateLockScreenBadge();
+        lucide.createIcons();
+        const input = document.getElementById("admin-password-input");
+        if (input) setTimeout(() => input.focus(), 150);
+      }
+    };
+  </script>
+</body>
+</html>
