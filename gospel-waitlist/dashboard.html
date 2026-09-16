@@ -123,10 +123,10 @@
           <a href="https://boreal-pebble-pj5z.here.now" class="text-gold hover:underline text-[11px]">← Waitlist site</a>
         </div>
 
-        <!-- Initial Setup / Status Credential Hint -->
+        <!-- Initial Setup / Status Credential Hint (never shows the actual password) -->
         <div id="auth-hint-container" class="text-[11px] text-zinc-400 bg-surface/80 rounded-xl p-2.5 border border-border text-center space-y-0.5">
-          <div id="auth-hint-title">Setup key: <code class="text-gold font-mono font-bold bg-zinc-900 px-1.5 py-0.5 rounded border border-gold/30">gospel2026</code></div>
-          <p id="auth-hint-sub" class="text-[10px] text-zinc-500">You can customize or change your password once logged in.</p>
+          <div id="auth-hint-title">Administrator access required</div>
+          <p id="auth-hint-sub" class="text-[10px] text-zinc-500">Enter your admin password to continue.</p>
         </div>
 
         <button type="submit" id="auth-submit-btn" class="w-full py-2.5 rounded-xl bg-gold hover:bg-gold-light text-black font-bold text-xs shadow-md transition flex items-center justify-center gap-2 active:scale-95">
@@ -652,8 +652,8 @@
       </form>
 
       <div class="pt-2 border-t border-border flex items-center justify-between text-[11px] text-zinc-500">
-        <span>Current status: <span id="pwd-status-text" class="text-zinc-300">Default password active</span></span>
-        <button type="button" onclick="resetPasswordToDefault()" class="text-gold hover:underline">Reset</button>
+        <span>Current status: <span id="pwd-status-text" class="text-zinc-300">Password set</span></span>
+        <button type="button" onclick="signOut()" class="text-gold hover:underline">Sign out</button>
       </div>
     </div>
   </div>
@@ -672,8 +672,7 @@
         document.getElementById("new-admin-password").value = "";
         document.getElementById("confirm-admin-password").value = "";
         document.getElementById("pwd-modal-error").classList.add("hidden");
-        const customHash = localStorage.getItem("gospel_custom_admin_hash");
-        document.getElementById("pwd-status-text").textContent = customHash ? "Custom password configured" : "Default (gospel2026)";
+        refreshPasswordStatus();
         modal.classList.remove("hidden");
         modal.classList.add("flex");
         lucide.createIcons();
@@ -693,64 +692,118 @@
       const p1 = document.getElementById("new-admin-password").value.trim();
       const p2 = document.getElementById("confirm-admin-password").value.trim();
       const err = document.getElementById("pwd-modal-error");
+      const btn = document.querySelector("#pwd-modal button[type='submit']");
 
       if (p1 !== p2) {
         err.textContent = "Passwords do not match. Please re-enter.";
         err.classList.remove("hidden");
         return;
       }
-
       if (p1.length < 6) {
         err.textContent = "Password must be at least 6 characters.";
         err.classList.remove("hidden");
         return;
       }
+      if (!ADMIN_SESSION_PASSWORD) {
+        err.textContent = "Session expired. Re-enter your current password at the lock screen.";
+        err.classList.remove("hidden");
+        return;
+      }
 
-      const hash = await sha256Hex(p1);
-      localStorage.setItem("gospel_custom_admin_hash", hash);
-      closeChangePasswordModal();
-      lockDashboard();
-      updateLockScreenBadge();
-      showToast("Admin password updated! Please enter your new password to verify.");
+      if (btn) { btn.disabled = true; btn.textContent = "Saving..."; }
+      try {
+        // Server verifies the CURRENT password and persists the new hash
+        // permanently (Storage), so it survives every republish.
+        const data = await adminAuth("change", ADMIN_SESSION_PASSWORD, p1);
+        if (data.ok && data.changed) {
+          ADMIN_SESSION_PASSWORD = p1;
+          closeChangePasswordModal();
+          refreshPasswordStatus();
+          showToast("Admin password saved. It now works on every device and URL.");
+        } else {
+          err.textContent = data.error || "Could not save the new password.";
+          err.classList.remove("hidden");
+        }
+      } catch (e) {
+        err.textContent = `Could not save: ${e.message}`;
+        err.classList.remove("hidden");
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = "Save Password"; }
+      }
     }
 
-    function resetPasswordToDefault() {
-      if (confirm("Reset administrator password back to default (gospel2026)?")) {
-        localStorage.removeItem("gospel_custom_admin_hash");
-        document.getElementById("pwd-status-text").textContent = "Default (gospel2026)";
-        closeChangePasswordModal();
-        lockDashboard();
-        updateLockScreenBadge();
-        showToast("Password reset to default (gospel2026).");
-      }
+    function signOut() {
+      // Sign out only — the password itself lives server-side and is never
+      // reset to a shared default from the browser.
+      ADMIN_SESSION_PASSWORD = "";
+      closeChangePasswordModal();
+      lockDashboard();
     }
 
     function updateLockScreenBadge() {
-      const customHash = localStorage.getItem("gospel_custom_admin_hash");
+      // Deliberately neutral: never reveal the password or which credential is
+      // live. State is verified server-side (see ADMIN_AUTH_URL below).
       const title = document.getElementById("auth-hint-title");
       const sub = document.getElementById("auth-hint-sub");
       if (!title || !sub) return;
-      if (customHash) {
-        title.innerHTML = `<span class="text-emerald-400 font-semibold flex items-center justify-center gap-1"><i data-lucide="shield-check" class="w-3.5 h-3.5 inline"></i> Custom Password Active</span>`;
-        sub.innerHTML = `Default setup key has been disabled. Enter your custom password.`;
-      } else {
-        title.innerHTML = `Setup key: <code class="text-gold font-mono font-bold bg-zinc-900 px-1.5 py-0.5 rounded border border-gold/30">gospel2026</code>`;
-        sub.innerHTML = `You can customize or change your password once logged in.`;
-      }
+      title.textContent = `Administrator access required`;
+      sub.textContent = `Enter your admin password to continue.`;
       lucide.createIcons();
     }
 
-    // Valid SHA-256 password hashes:
-    // "gospel2026"      -> 74c15ec876e6cab6a25b5c58fc15174bfe9e80061253d84ed92b6fa73ab563a5
-    // "GospelAdmin2026!" -> e66d76fd4772d69933e11e36372239491049cc18bc90400e30643a9a0febfb6f
-    const VALID_ADMIN_HASHES = [
-      "74c15ec876e6cab6a25b5c58fc15174bfe9e80061253d84ed92b6fa73ab563a5",
-      "e66d76fd4772d69933e11e36372239491049cc18bc90400e30643a9a0febfb6f"
-    ];
+    /* ═══════════════════════════════════════════════════════════════════════
+       Admin password authority — SERVER SIDE.
 
-    async function sha256Hex(str) {
-      const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
-      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+       Why: the old build stored the password hash in localStorage, which is
+       per-origin. Every republish produced a NEW here.now URL → new origin →
+       empty localStorage → the setup key worked again and the custom password
+       "vanished". The hash now lives in Supabase Storage (private bucket) and
+       is verified by the `admin-auth` function, so it survives every URL,
+       every device, and every redeploy — and never reaches the browser.
+    ═══════════════════════════════════════════════════════════════════════════ */
+    const ADMIN_AUTH_URL = "https://svuvmetcrowqxafpgtub.supabase.co/functions/v1/admin-auth";
+    // Current password, held in memory for this tab only (needed to authorise
+    // a password change). Never written to disk.
+    let ADMIN_SESSION_PASSWORD = "";
+
+    // Supabase publishable (anon) key — PUBLIC BY DESIGN. Safe to ship in
+    // browser code; access is governed by RLS and by each edge function's
+    // verify_jwt setting. Allowlisted in .gitleaks.toml.
+    // Embedding it here (instead of asking the operator to inject it per
+    // origin) is what makes the dashboard work on every URL out of the box.
+    const GOSPEL_SUPABASE_ANON_KEY = "sb_publishable_CpcKK4jPnMoQmispE_lC4Q_2VB-34mq";
+
+    function adminApiKey() {
+      return (
+        (typeof window !== "undefined" && window.GOSPEL_SUPABASE_ANON_KEY) ||
+        GOSPEL_SUPABASE_ANON_KEY
+      );
+    }
+
+    async function adminAuth(action, password, newPassword) {
+      const key = adminApiKey();
+      if (!key) throw new Error("Sender not configured: set window.GOSPEL_SUPABASE_ANON_KEY (see BROADCAST_ACTION.md).");
+      const payload = { action, password };
+      if (newPassword !== undefined) payload.new_password = newPassword;
+      const res = await fetch(ADMIN_AUTH_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "apikey": key },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+      return data;
+    }
+
+    async function refreshPasswordStatus() {
+      const el = document.getElementById("pwd-status-text");
+      if (!el) return;
+      try {
+        const data = await adminAuth("status");
+        el.textContent = data.custom ? "Custom password active" : "Setup key active";
+      } catch (_) {
+        el.textContent = "Unknown (offline)";
+      }
     }
 
     async function handleAuthSubmit(event) {
@@ -765,26 +818,27 @@
       btn.innerHTML = `<span class="animate-spin mr-1">⏳</span> Verifying...`;
 
       try {
-        const hash = await sha256Hex(val);
-        const customHash = localStorage.getItem("gospel_custom_admin_hash");
-        const isMatch = customHash ? (hash === customHash) : VALID_ADMIN_HASHES.includes(hash);
-
-        if (isMatch) {
+        // Server decides. No client-side hash, no fallbacks to a default key.
+        const data = await adminAuth("login", val);
+        if (data.ok) {
           const remember = document.getElementById("auth-remember-me").checked;
+          ADMIN_SESSION_PASSWORD = val;
           sessionStorage.setItem("gospel_admin_auth", "valid");
-          if (remember) {
-            localStorage.setItem("gospel_admin_auth", "valid");
-          }
+          if (remember) localStorage.setItem("gospel_admin_auth", "valid");
           errorMsg.classList.add("hidden");
           unlockDashboardUI();
-          showToast("Dashboard unlocked. Welcome, Administrator!");
+          refreshPasswordStatus();
+          showToast(data.custom ? "Dashboard unlocked." : "Dashboard unlocked with setup key — set your own password in Settings.");
         } else {
+          errorMsg.textContent = "Incorrect password.";
           errorMsg.classList.remove("hidden");
           input.parentElement.classList.add("shake");
           setTimeout(() => input.parentElement.classList.remove("shake"), 400);
           input.select();
         }
       } catch (err) {
+        errorMsg.textContent = `Cannot verify right now: ${err.message}`;
+        errorMsg.classList.remove("hidden");
         console.error("Auth check failed:", err);
       } finally {
         btn.disabled = false;
@@ -1386,14 +1440,9 @@
     // Button calls it directly: no GitHub token, no OAuth, no extra auth.
     // Password lives in Supabase function secrets (GMAIL_APP_PASSWORD), never here.
     const SEND_API_URL = "https://svuvmetcrowqxafpgtub.supabase.co/functions/v1/send-broadcast";
-    // Supabase anon key is public by design but injected at deploy time, not
-    // hardcoded here. Set window.GOSPEL_SUPABASE_ANON_KEY before this script,
-    // or it falls back to the meta tag / localStorage value.
-    const SEND_API_ANON_KEY =
-      (typeof window !== "undefined" && window.GOSPEL_SUPABASE_ANON_KEY) ||
-      document.querySelector('meta[name="gospel-supabase-anon-key"]')?.content ||
-      localStorage.getItem("gospel_supabase_anon_key") ||
-      "";
+    // Supabase anon key (public by design) comes from the constant defined in
+    // the auth section above — no per-origin setup required.
+    const SEND_API_ANON_KEY = adminApiKey();
 
     async function sendViaSupabase(subject, body, selected, testTo = "") {
       if (!SEND_API_ANON_KEY) {

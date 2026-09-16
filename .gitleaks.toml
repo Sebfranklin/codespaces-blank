@@ -1,0 +1,19 @@
+# Gitleaks config — extends the default ruleset.
+#
+# Supabase publishes two kinds of key:
+#   sb_publishable_* / anon      -> PUBLIC BY DESIGN. Shipped in browser bundles
+#                                   on purpose; access is governed by RLS and by
+#                                   each edge function's verify_jwt setting.
+#   sb_secret_* / service_role   -> real credentials, still scanned.
+#
+# The waitlist dashboard must embed the publishable key to call the edge
+# functions, so it is allowlisted here. Secret/service-role keys are NOT.
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Supabase publishable (anon) keys are public by design"
+regexTarget = "match"
+regexes = [
+  '''sb_publishable_[A-Za-z0-9_\-]{16,}''',
+]
