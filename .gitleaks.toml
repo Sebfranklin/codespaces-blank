@@ -17,3 +17,30 @@ regexTarget = "match"
 regexes = [
   '''sb_publishable_[A-Za-z0-9_\-]{16,}''',
 ]
+
+# ---------------------------------------------------------------------------
+# Confirmed false positives (triaged 2026-09-29 with a full workspace scan).
+# Every entry below was inspected by hand and is NOT a credential. Each one is
+# scoped to the exact benign shape so the rule still catches lookalikes.
+# ---------------------------------------------------------------------------
+
+[[allowlists]]
+description = "PostHog project keys (phc_) are client-side ingest keys, public by design"
+regexTarget = "match"
+regexes = [
+  '''phc_[A-Za-z0-9]{20,}''',
+]
+
+[[allowlists]]
+description = "star-history.com chart badges carry a public sealed_token in third-party READMEs"
+regexTarget = "match"
+regexes = [
+  '''sealed_token=[A-Za-z0-9_\-]{16,}''',
+]
+
+[[allowlists]]
+description = "Third-party doc/model identifiers, e.g. 'API: whisper-large-v3' (a model name, not a key)"
+regexTarget = "match"
+regexes = [
+  '''whisper-large-v3''',
+]

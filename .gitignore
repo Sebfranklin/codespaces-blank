@@ -1,0 +1,34 @@
+node_modules/
+.git/
+*.deb
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.pdf
+*.docx
+*.pptx
+*.enc
+*.zip
+*.tar
+*.gz
+*.mp3
+*.mp4
+*.wav
+*.ogg
+*.pyc
+*.pyo
+.env
+*.key
+*.pem
+secrets/
+
+# MemPalace per-project files (issue #185)
+mempalace.yaml
+entities.json
+
+# here.now CLI state — holds live claim tokens (credential material), never commit
+.herenow/
+
+# Local agent/MCP config — may embed provider tokens
+.opencode/
