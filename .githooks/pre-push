@@ -1,0 +1,25 @@
+#!/bin/sh
+set -e
+
+# Lightweight Branch & Review Guard
+# Blocks direct pushing to protected branches (main / master)
+protected_branch="main|master"
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+    branch_name=$(echo "$remote_ref" | sed 's@^refs/heads/@@')
+    if echo "$branch_name" | grep -Eq "^($protected_branch)$"; then
+        printf "\n\033[1;31m[GIT PRE-PUSH BLOCKED]\033[0m Direct push to '%s' is prohibited.\n" "$branch_name"
+        printf "Agents must follow the 5-Phase Loop:\n"
+        printf "  1. Work on a feature branch (e.g. git checkout -b feat/...)\n"
+        printf "  2. Complete Phase 4 Adversarial Review & Oxlint\n"
+        printf "  3. Open a PR or solicit explicit user integration confirmation.\n\n"
+        exit 1
+    fi
+done
+
+# Run git-lfs if configured
+if command -v git-lfs >/dev/null 2>&1; then
+    git lfs pre-push "$@" || true
+fi
+
+exit 0

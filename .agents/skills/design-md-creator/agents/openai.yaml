@@ -1,0 +1,4 @@
+interface:
+  display_name: "DESIGN.md Creator"
+  short_description: "Create DESIGN.md and preview it in HTML"
+  default_prompt: "Use $design-md-creator to extract a website design system, build my requested page as HTML, and open the validated preview in my browser."

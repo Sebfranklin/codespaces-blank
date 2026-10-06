@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -e
+
+echo "==> Running Gitleaks credential protection..."
+gitleaks protect --staged --verbose
+
+if [ -f ".oxlintrc.json" ]; then
+  echo "==> Running Oxlint type-aware check..."
+  oxlint --type-aware
+fi
+
+echo "==> Pre-commit checks passed."

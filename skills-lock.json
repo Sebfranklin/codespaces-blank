@@ -1,0 +1,153 @@
+{
+  "version": 1,
+  "skills": {
+    "emitting-output": {
+      "source": "redhat-et/ripwire",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/emitting-output/SKILL.md",
+      "computedHash": "4f2a33a4b2db38a882decd7054e774bbf3d1314b9217c3eed1181406faaf5080"
+    },
+    "full-output-enforcement": {
+      "source": "Leonxlnx/taste-skill",
+      "sourceType": "github",
+      "skillPath": "skills/output-skill/SKILL.md",
+      "computedHash": "26bd29ce4c5e02c7666b2d503609bf466bd32290822e91f0e984147048dbb924"
+    },
+    "mempalace": {
+      "source": "MemPalace/mempalace",
+      "sourceType": "github",
+      "skillPath": "skills/mempalace/SKILL.md",
+      "computedHash": "1a0f04328e89c6aea33a0fbac8279b02bdf128945bbdede6f452a1cca17aea2c"
+    },
+    "mempalace-recall": {
+      "source": "MemPalace/mempalace",
+      "sourceType": "github",
+      "skillPath": "skills/mempalace-recall/SKILL.md",
+      "computedHash": "6e730b956ff0ddfe6649a6f8c373a8905771fb0703b4f6f2d945d96b3cc2aee2"
+    },
+    "pptx": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/pptx/SKILL.md",
+      "computedHash": "82eaf5daede5a1779aa17ccf06597cb209a0c2bd41d3a2f18bd45e0301a387fb"
+    },
+    "ripwire-before-you-build": {
+      "source": "redhat-et/ripwire",
+      "sourceType": "github",
+      "skillPath": "skills/ripwire-before-you-build/SKILL.md",
+      "computedHash": "80354ff25491feeb74004d19877b0f91f28e51437c0b264d93f0dfe11f1afbff"
+    },
+    "ripwire-change-check": {
+      "source": "redhat-et/ripwire",
+      "sourceType": "github",
+      "skillPath": "skills/ripwire-change-check/SKILL.md",
+      "computedHash": "d8bd390ad71e9d2a9812fcb2b56cbd44df656575fb192e182c3872003c267c55"
+    },
+    "ripwire-find-bug": {
+      "source": "redhat-et/ripwire",
+      "sourceType": "github",
+      "skillPath": "skills/ripwire-find-bug/SKILL.md",
+      "computedHash": "63753cc98b44c061c7aa4acaf498807fc9bed691442d227a921525ed26fcb3d8"
+    },
+    "ripwire-fresh-eyes": {
+      "source": "redhat-et/ripwire",
+      "sourceType": "github",
+      "skillPath": "skills/ripwire-fresh-eyes/SKILL.md",
+      "computedHash": "1420d05f5ae385f3e06bff65b223b30f684e01b6d311103d3961714a21c188b3"
+    },
+    "ripwire-graph-query": {
+      "source": "redhat-et/ripwire",
+      "sourceType": "github",
+      "skillPath": "skills/ripwire-graph-query/SKILL.md",
+      "computedHash": "391e8d61c9bdbc79625fff0304021a294049472f33b4abd17c0edae854c8c0f0"
+    },
+    "ripwire-handoff": {
+      "source": "redhat-et/ripwire",
+      "sourceType": "github",
+      "skillPath": "skills/ripwire-handoff/SKILL.md",
+      "computedHash": "2b0d8f7f57b7278814e44a4fe28bba425eff66e4b9eb31941905148dbb1c2c94"
+    },
+    "ripwire-layers": {
+      "source": "redhat-et/ripwire",
+      "sourceType": "github",
+      "skillPath": "skills/ripwire-layers/SKILL.md",
+      "computedHash": "c33a7f79e7a4885a3c00f3f7baad56fb573802fb8b81fe9a58805390131d263b"
+    },
+    "ripwire-mcp": {
+      "source": "redhat-et/ripwire",
+      "sourceType": "github",
+      "skillPath": "skills/ripwire-mcp/SKILL.md",
+      "computedHash": "7c87aedf498e511f29ad0219860cc9a13352f7ab99582054cdc587fcb8b3cd86"
+    },
+    "ripwire-navigate": {
+      "source": "redhat-et/ripwire",
+      "sourceType": "github",
+      "skillPath": "skills/ripwire-navigate/SKILL.md",
+      "computedHash": "517ac45f78b64fbed482dd1be7edbc25c9ad86892b2b5828a12dada243925791"
+    },
+    "ripwire-opt-remarks": {
+      "source": "redhat-et/ripwire",
+      "sourceType": "github",
+      "skillPath": "skills/ripwire-opt-remarks/SKILL.md",
+      "computedHash": "63c285420d82f3a9a53970e8eff8d417752fdf47cd86899b57ad97b71210f3d1"
+    },
+    "ripwire-orient": {
+      "source": "redhat-et/ripwire",
+      "sourceType": "github",
+      "skillPath": "skills/ripwire-orient/SKILL.md",
+      "computedHash": "f571d1881ee4d6a33ee1849442fbf45159e7ffd431bfdf03f3dfb1dbdac48aac"
+    },
+    "ripwire-perf-target": {
+      "source": "redhat-et/ripwire",
+      "sourceType": "github",
+      "skillPath": "skills/ripwire-perf-target/SKILL.md",
+      "computedHash": "1b7a981bdcc9d69ed6318c18bfd32f7c0bafc2bd10ef87b17ac7c25d3c77e504"
+    },
+    "ripwire-quality-bar": {
+      "source": "redhat-et/ripwire",
+      "sourceType": "github",
+      "skillPath": "skills/ripwire-quality-bar/SKILL.md",
+      "computedHash": "89e31b589dab0346f28fb8ffa190d54dac1bb038bdf302a6589faa9cc44c0b39"
+    },
+    "ripwire-repo-map": {
+      "source": "redhat-et/ripwire",
+      "sourceType": "github",
+      "skillPath": "skills/hermes/ripwire-repo-map/SKILL.md",
+      "computedHash": "71d9629ca0d2d2a1be08193592c91c8c11494b860d9ef33604fa859a8057346d"
+    },
+    "ripwire-reuse-first": {
+      "source": "redhat-et/ripwire",
+      "sourceType": "github",
+      "skillPath": "skills/ripwire-reuse-first/SKILL.md",
+      "computedHash": "fe0fa6ba5b6a783bd60870439f686126582b6fa2b523edf001c63e369d39f24a"
+    },
+    "ripwire-router": {
+      "source": "redhat-et/ripwire",
+      "sourceType": "github",
+      "skillPath": "skills/ripwire-router/SKILL.md",
+      "computedHash": "a1ff51b6aae93cab5da8fd81e3e51ea9bf1d0efaa4debc67aeb1439a27aaf927"
+    },
+    "ripwire-security-scan": {
+      "source": "redhat-et/ripwire",
+      "sourceType": "github",
+      "skillPath": "skills/ripwire-security-scan/SKILL.md",
+      "computedHash": "c745a36cf1e79bd3bee177609fea76b48852a8c6996eb0fe68436ce5fd7fb941"
+    },
+    "ripwire-write-tests": {
+      "source": "redhat-et/ripwire",
+      "sourceType": "github",
+      "skillPath": "skills/ripwire-write-tests/SKILL.md",
+      "computedHash": "1b6869f54be5db919eb34b8a3dc409f280f3d35e418f017f9878f307185a69d9"
+    },
+    "design-md-creator": {
+      "source": "iFurySt/DESIGN.md",
+      "sourceType": "github",
+      "skillPath": "skills/design-md-creator/SKILL.md"
+    },
+    "stylekit": {
+      "source": "AnxForever/stylekit-skill",
+      "sourceType": "github",
+      "skillPath": "SKILL.md"
+    }
+  }
+}

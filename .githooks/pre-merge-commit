@@ -1,0 +1,14 @@
+#!/bin/sh
+set -e
+
+# Block local merges directly into main or master
+current_branch=$(git symbolic-ref --short HEAD 2>/dev/null || echo "")
+
+if [ "$current_branch" = "main" ] || [ "$current_branch" = "master" ]; then
+    printf "\n\033[1;31m[GIT PRE-MERGE BLOCKED]\033[0m Merging directly into '%s' is prohibited.\n" "$current_branch"
+    printf "Agents must keep 'main' pristine.\n"
+    printf "Merge requests must go through remote Pull Requests with adversarial review.\n\n"
+    exit 1
+fi
+
+exit 0
