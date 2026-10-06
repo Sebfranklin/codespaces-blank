@@ -36,7 +36,7 @@
 | **Linting & Type Safety** | `oxlint` v1.83.0 globally | Fast type-aware check (`oxlint --type-aware`). Zero-error gate. |
 | **Code Health & Anti-Bloat** | `fallow` (static analysis) & `ponytail` suite (6 skills) | Run `npx fallow audit` before declaring JS/TS tasks done. Apply Ponytail Ladder for minimal code. |
 | **Visual Browser Review** | Playwright (devDependency in `Learnty_App`) | Execute `Learnty_App/playwright-breakpoints.mjs`. Capture multi-breakpoint mobile screenshots and logs. |
-| **Adversarial Critique** | `requesting-code-review`, `receiving-code-review`, `code-review` | Isolated critic protocol: author requests review; receiver verifies with technical rigor. |
+| **Adversarial Critique** | `requesting-code-review`, `receiving-code-review`, `code-review`, `gauntlet-loop` | Isolated critic protocol: author requests review; receiver verifies with technical rigor; `gauntlet-loop` for blind benchmark comparison. |
 | **Visual Styles & UI Design Systems** | `frontend-design` (Anthropic), `stylekit` (148 styles, CLI v0.3.1), `design-md-creator` (63 brand specs) | Apply Anthropic `frontend-design` for anti-template intentional UI; `stylekit` for tokens/recipes; `design-md-creator` for brand specs. |
 | **Instant Hosting & Storage** | `here-now` CLI & skills | Run `.agents/skills/here-now/scripts/publish.sh` for instant public URLs; drives for cloud storage. |
 | **Communication & Brevity** | `chat` skill (`/chat`) | High-Density Brevity Protocol: lead with key points, inline micro-definitions, proactive risk-flagging, zero conversational filler. |
